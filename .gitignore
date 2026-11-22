@@ -1,10 +1,10 @@
 # 의존성
-node_modules/
+node_modules
 .pnp
 .pnp.*
 
 # Next.js 빌드 산출물
-.next/
+.next
 out/
 build/
 next-env.d.ts
@@ -31,6 +31,9 @@ planning/
 # 에이전트 개인 설정
 .claude/settings.local.json
 CLAUDE.local.md
+
+# iCloud 동기화 제외용 폴더 (원래 이름은 이 폴더를 가리키는 링크)
+*.nosync
 
 # OS·에디터
 .DS_Store

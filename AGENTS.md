@@ -84,6 +84,7 @@ src/
 - 완료 기준: `npm run check` 통과, 화면 변경은 실제 화면에서 주요 흐름 확인
 - 요구가 불명확하면 추측으로 범위 확대 금지, 질문 우선
 - 훅·린트 차단 시 우회 금지, 원인 해결
+- iCloud 동기화 폴더에서는 `node_modules`·`.next`를 `*.nosync` 폴더의 링크로 유지, `npm ci` 후 `bash scripts/icloud-nosync.sh` 실행
 
 ## 문서 색인
 
