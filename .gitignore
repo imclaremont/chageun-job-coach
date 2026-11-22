@@ -1,0 +1,41 @@
+# 의존성
+node_modules/
+.pnp
+.pnp.*
+
+# Next.js 빌드 산출물
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# 환경변수·비밀 정보 (예시 파일만 커밋)
+.env
+.env.*
+!.env.example
+
+# 배포
+.vercel/
+
+# 테스트
+coverage/
+
+# 로컬 개발용 데이터 저장소
+.data/
+
+# 대회 제출 서류·기획 원문 (팀원 개인정보 포함 가능, 레포 밖 관리)
+submission/
+planning/
+
+# 에이전트 개인 설정
+.claude/settings.local.json
+CLAUDE.local.md
+
+# OS·에디터
+.DS_Store
+*.pem
+npm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
