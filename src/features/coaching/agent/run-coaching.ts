@@ -38,7 +38,7 @@ export function buildFallbackReply(step: Step, trace: string[] = []): CoachingRe
     .filter(Boolean);
   return {
     message: `괜찮아요. 다시 같이 봐요. ${step.action}.`,
-    smallSteps: smallSteps.length > 1 ? smallSteps : [],
+    smallSteps,
     encouragement: ENCOURAGEMENT,
     coachCalled: false,
     source: "fallback",
