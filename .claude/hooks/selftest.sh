@@ -36,6 +36,10 @@ t 2 guard-bash "$(bash_input 'git push origin main')"
 t 2 guard-bash "$(bash_input 'git push origin HEAD:develop')"
 t 0 guard-bash "$(bash_input 'git push -u origin feat/#9-sample')"
 t 0 guard-bash "$(bash_input 'git push origin v1.0.0')"
+t 0 guard-bash "$(bash_input 'FORCE_PUSH_APPROVED=1 git push --force origin main develop')"
+t 2 guard-bash "$(bash_input 'git commit -m sample -m \"Co-Authored-By: Claude <noreply@anthropic.com>\"')"
+t 2 guard-bash "$(bash_input 'gh pr create --title sample --body \"Generated with [Claude Code](https://claude.com/claude-code)\"')"
+t 0 guard-bash "$(bash_input 'gh pr create --base develop --title sample --body ok')"
 
 case "$branch" in
   main | develop) t 2 guard-bash "$(bash_input 'git commit -m sample')" ;;
