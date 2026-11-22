@@ -216,6 +216,11 @@ export function HelpPanel({ help, coachCalled, onAsk, onCallCoach, onClose }: Pr
                 듣고 있어요. 지금 말해요.
               </p>
             )}
+            {voice.listening && voice.interim && (
+              <p className="rounded-2xl bg-brand-50 px-4 py-3 text-xl font-semibold text-brand-900">
+                {voice.interim}
+              </p>
+            )}
             {voice.error && !voice.listening && (
               <p role="alert" className="text-xl font-semibold text-stone-800">
                 {VOICE_ERRORS[voice.error]}
