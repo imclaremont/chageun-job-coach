@@ -5,18 +5,32 @@ export type ErrorCodeDef = {
   message: string;
 };
 
+const define = (status: number, code: string, message: string): ErrorCodeDef => ({
+  status,
+  code,
+  message,
+});
+
 export const ErrorCode = {
-  INVALID_REQUEST: {
-    status: 400,
-    code: "INVALID_REQUEST",
-    message: "요청 형식이 올바르지 않습니다",
-  },
-  NOT_FOUND: { status: 404, code: "NOT_FOUND", message: "요청한 내용을 찾을 수 없습니다" },
-  INTERNAL_ERROR: { status: 500, code: "INTERNAL_ERROR", message: "잠시 후 다시 시도해 주세요" },
-  AI_NOT_CONFIGURED: {
-    status: 503,
-    code: "AI_NOT_CONFIGURED",
-    message: "AI 연결이 설정되지 않았습니다",
-  },
-  AI_FAILED: { status: 502, code: "AI_FAILED", message: "AI 응답을 받지 못했습니다" },
+  // 공통
+  INVALID_REQUEST: define(400, "INVALID_REQUEST", "요청 형식이 올바르지 않습니다"),
+  NOT_FOUND: define(404, "NOT_FOUND", "요청한 내용을 찾을 수 없습니다"),
+  INTERNAL_ERROR: define(500, "INTERNAL_ERROR", "잠시 후 다시 시도해 주세요"),
+
+  // AI
+  AI_NOT_CONFIGURED: define(503, "AI_NOT_CONFIGURED", "AI 연결이 설정되지 않았습니다"),
+  AI_FAILED: define(502, "AI_FAILED", "AI 응답을 받지 못했습니다. 잠시 후 다시 시도해 주세요"),
+
+  // 가이드
+  GUIDE_NOT_FOUND: define(404, "GUIDE_NOT_FOUND", "가이드를 찾을 수 없습니다"),
+  MANUAL_REJECTED: define(
+    422,
+    "MANUAL_REJECTED",
+    "업무 순서를 찾지 못했습니다. 순서가 있는 업무 내용을 넣어 주세요",
+  ),
+  GUIDE_HAS_ISSUES: define(
+    409,
+    "GUIDE_HAS_ISSUES",
+    "확인이 필요한 단계가 남아 있습니다. 내용을 확인한 뒤 승인해 주세요",
+  ),
 } as const satisfies Record<string, ErrorCodeDef>;
