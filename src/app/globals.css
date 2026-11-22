@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  /* 기기에 설치된 한글 글꼴 사용, 외부 글꼴 파일 없음 */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
+    "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  /* 한국어 낱말 단위 줄바꿈 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 키보드 초점 표시 */
+:focus-visible {
+  outline: 3px solid #0f766e;
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* 움직임 줄이기 설정 존중 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

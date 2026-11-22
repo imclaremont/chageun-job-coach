@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PostToolUse(Edit|Write): 수정한 파일을 Prettier로 정리, 실패해도 작업은 막지 않음
+// PostToolUse(Edit|Write): 수정한 파일 Prettier 정리, 실패 시에도 작업 미차단
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -14,7 +14,10 @@ const inProject = rel && !rel.startsWith("..") && !/(^|\/)(node_modules|\.next|\
 const formattable = /\.(ts|tsx|js|jsx|mjs|cjs|json|css|md|yml|yaml)$/.test(rel);
 
 if (inProject && formattable && existsSync(prettier) && existsSync(filePath)) {
-  spawnSync(prettier, ["--write", "--log-level", "silent", filePath], { cwd: PROJECT_DIR, timeout: 15_000 });
+  spawnSync(prettier, ["--write", "--log-level", "silent", filePath], {
+    cwd: PROJECT_DIR,
+    timeout: 15_000,
+  });
 }
 
 process.exit(0);

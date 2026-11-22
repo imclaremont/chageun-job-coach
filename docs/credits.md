@@ -1,12 +1,24 @@
 # 외부 자원·출처
 
-대회 제출 서류의 「활용한 외부 자원·출처」 표와 README의 Credits / Licenses 섹션의 원본이다. 라이브러리·데이터·이미지·폰트·API·AI 도구를 추가하면 같은 PR에서 이 문서에 적는다
+대회 제출 서류의 「활용한 외부 자원·출처」 표와 README Credits / Licenses 섹션의 원본
+라이브러리·데이터·이미지·폰트·API·AI 도구 추가 시 같은 PR에서 기재
 
 ## 오픈소스·템플릿
 
-| 명칭 | 라이선스 | 링크 | 사용 위치 |
-| ---- | -------- | ---- | --------- |
-|      |          |      |           |
+| 명칭               | 버전   | 라이선스   | 링크                                        | 사용 위치                  |
+| ------------------ | ------ | ---------- | ------------------------------------------- | -------------------------- |
+| Next.js            | 16.4.6 | MIT        | https://github.com/vercel/next.js           | 웹 프레임워크, 초기 템플릿 |
+| React · React DOM  | 19.3.0 | MIT        | https://github.com/facebook/react           | UI                         |
+| Tailwind CSS       | 4.3.3  | MIT        | https://github.com/tailwindlabs/tailwindcss | 스타일                     |
+| OpenAI Node SDK    | 6.49.0 | Apache-2.0 | https://github.com/openai/openai-node       | OpenAI API 호출            |
+| Zod                | 4.6.7  | MIT        | https://github.com/colinhacks/zod           | 입력·AI 출력 검증          |
+| server-only        | 0.0.1  | MIT        | https://www.npmjs.com/package/server-only   | 서버 전용 모듈 표시        |
+| Lucide React       | 1.77.0 | ISC        | https://github.com/lucide-icons/lucide      | 화면 아이콘                |
+| TypeScript         | 5.9.3  | Apache-2.0 | https://github.com/microsoft/TypeScript     | 타입 검사 (개발)           |
+| ESLint             | 9.39.5 | MIT        | https://github.com/eslint/eslint            | 린트 (개발)                |
+| eslint-config-next | 16.4.6 | MIT        | https://github.com/vercel/next.js           | 린트 규칙 (개발)           |
+| Prettier           | 3.10.1 | MIT        | https://github.com/prettier/prettier        | 코드 포맷 (개발)           |
+| Vitest             | 3.2.7  | MIT        | https://github.com/vitest-dev/vitest        | 테스트 (개발)              |
 
 ## 외부 데이터·API
 
@@ -22,9 +34,11 @@
 
 ## 이미지·음원·폰트
 
-| 자료명 | 제작자·출처 | 라이선스 | 사용 위치 |
-| ------ | ----------- | -------- | --------- |
-|        |             |          |           |
+| 자료명        | 제작자·출처 | 라이선스 | 사용 위치          |
+| ------------- | ----------- | -------- | ------------------ |
+| 서비스 아이콘 | 직접 제작   | -        | `src/app/icon.svg` |
+
+- 글꼴: 기기 설치 글꼴 사용, 외부 글꼴 파일 없음
 
 ## 직접 만든 데이터
 

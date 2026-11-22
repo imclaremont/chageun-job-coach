@@ -44,8 +44,12 @@ gh pr create --base develop --title "[Feat] 제목" --body-file <본문 파일>
 
 ```bash
 gh pr merge <PR번호> --merge --delete-branch --subject "[Feat] 제목 (#PR번호)"
+gh issue close <이슈번호>
 git checkout develop && git pull --ff-only
 ```
+
+- `develop` 머지는 이슈 자동 종료 미지원, `gh issue close`로 직접 종료
+- 커밋·PR·이슈 본문에 AI 도구 서명·공동 작성자 표기 금지
 
 ## 5. 릴리즈 — develop → main, Squash merge
 
