@@ -39,6 +39,8 @@ export const HelpRequestSchema = z.object({
   answer: z.string().nullable(),
   // 사람 호출 사유
   reason: z.string().nullable(),
+  // 다쳤거나 아프다고 알린 긴급 호출
+  urgent: z.boolean().default(false),
   // AI가 쓴 도구 순서
   trace: z.array(z.string()),
   status: z.enum(["open", "resolved"]),

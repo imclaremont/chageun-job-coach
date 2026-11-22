@@ -92,7 +92,19 @@ describe("runCoachingAgent", () => {
     const reply = await runCoachingAgent({ ...input, question: "손이 아파요" }, chat);
 
     expect(reply.coachCalled).toBe(true);
+    expect(reply.urgent).toBe(false);
     expect(reply.source).toBe("ai");
+  });
+
+  it("AI가 다친 상황으로 판단하면 긴급 호출로 표시", async () => {
+    const { chat } = scriptedChat([
+      { name: TOOL.CALL_COACH, args: { reason: "손에서 빨간 것이 난다고 말함", urgent: true } },
+      answer("선생님을 불렀어요. 잠깐 기다려요."),
+    ]);
+
+    const reply = await runCoachingAgent({ ...input, question: "손에서 빨간 게 나와요" }, chat);
+
+    expect(reply).toMatchObject({ coachCalled: true, urgent: true });
   });
 
   it("사람을 부른다고 답하면서 호출 도구를 쓰지 않으면 코드가 대신 호출", async () => {
