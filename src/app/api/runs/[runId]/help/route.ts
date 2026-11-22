@@ -4,8 +4,8 @@ import { ok, withApiHandler } from "@/shared/api";
 
 type Context = RouteContext<"/api/runs/[runId]/help">;
 
-// AI 도구 호출 반복 시간 확보
-export const maxDuration = 90;
+// AI 도구 호출 반복 시간 확보, 배포 환경 제한에 맞춤
+export const maxDuration = 60;
 
 // '잘 모르겠어요': AI 코칭 답변
 export const POST = withApiHandler<Context>(async (request, context) => {

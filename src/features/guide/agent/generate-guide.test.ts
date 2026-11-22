@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { DraftGuide, DraftStep } from "../schema";
-import { generateGuide, MAX_REVISIONS, type StructuredGenerator } from "./generate-guide";
+import {
+  generateGuide,
+  MAX_REVISIONS,
+  REVISION_BUDGET_MS,
+  type StructuredGenerator,
+} from "./generate-guide";
 
 const MANUAL = "컵에 얼음을 가득 채운다. 뚜껑을 닫고 빨대를 꽂는다.";
 
@@ -69,6 +74,18 @@ describe("generateGuide", () => {
     expect(prompts).toHaveLength(1 + MAX_REVISIONS);
     expect(result.issuesRemaining).toBeGreaterThan(0);
     expect(result.issuesByStep[0].map((issue) => issue.code)).toContain("MULTI_ACTION");
+  });
+
+  it("시간 예산을 넘기면 재작성하지 않고 문제를 남긴 채 반환", async () => {
+    const { generate, prompts } = fakeGenerator([draft([multiActionStep])]);
+    // 첫 호출 뒤 예산만큼 시간이 흐른 시계
+    let calls = 0;
+    const now = () => (calls++ === 0 ? 0 : REVISION_BUDGET_MS);
+
+    const result = await generateGuide({ manual: MANUAL }, generate, now);
+
+    expect(prompts).toHaveLength(1);
+    expect(result.issuesRemaining).toBeGreaterThan(0);
   });
 
   it("재작성 결과가 더 나쁘면 이전 결과 유지", async () => {
