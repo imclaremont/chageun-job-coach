@@ -75,5 +75,5 @@ app  →  features  →  infra · shared · config
 | OpenAI SDK는 `infra/openai`에서만 사용 | ESLint `no-restricted-imports`          |
 | 기능 내부 파일 직접 참조 금지          | ESLint `no-restricted-imports`          |
 | 타입·린트·테스트 통과                  | `npm run check`, GitHub Actions         |
-| 비밀 정보·보호 브랜치·마감 이후 동결   | `.claude/hooks`                         |
+| 비밀 정보·AI 도구 표기·보호 브랜치     | `.claude/hooks`                         |
 | 코드 포맷                              | Prettier (편집 후 훅, `npm run format`) |

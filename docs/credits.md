@@ -1,6 +1,6 @@
 # 외부 자원·출처
 
-대회 제출 서류의 「활용한 외부 자원·출처」 표와 README Credits / Licenses 섹션의 원본
+README Credits / Licenses 섹션의 원본
 라이브러리·데이터·이미지·폰트·API·AI 도구 추가 시 같은 PR에서 기재
 
 ## 오픈소스·템플릿

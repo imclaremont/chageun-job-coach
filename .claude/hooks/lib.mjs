@@ -2,8 +2,9 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
-// 대회 제출 마감 시각, 이후 기능 변경 동결
-export const FREEZE_AT = Date.parse("2026-11-23T17:00:00+09:00");
+// 동결 시각, 로컬 환경변수 FREEZE_AT(ISO 형식)으로 지정, 없으면 동결 없음
+const freezeAt = Date.parse(process.env.FREEZE_AT ?? "");
+export const FREEZE_AT = Number.isNaN(freezeAt) ? null : freezeAt;
 export const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 export function readHookInput() {
