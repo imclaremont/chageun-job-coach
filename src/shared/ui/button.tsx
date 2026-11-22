@@ -5,21 +5,24 @@ type Variant = "primary" | "secondary" | "danger" | "ghost";
 type Size = "sm" | "md" | "lg" | "xl";
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 font-semibold select-none transition-[background-color,box-shadow,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100";
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-teal-700 text-white hover:bg-teal-800",
-  secondary: "bg-white text-stone-900 ring-1 ring-stone-300 hover:bg-stone-100",
-  danger: "bg-white text-red-700 ring-1 ring-red-300 hover:bg-red-50",
-  ghost: "text-stone-700 hover:bg-stone-200",
+  primary:
+    "bg-brand-700 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.14),0_1px_2px_rgb(8_32_26/0.35)] hover:bg-brand-800",
+  secondary:
+    "bg-white text-stone-900 ring-1 ring-inset ring-stone-300 shadow-[0_1px_2px_rgb(28_25_23/0.05)] hover:bg-stone-50 hover:ring-stone-400",
+  danger:
+    "bg-white text-red-700 ring-1 ring-inset ring-red-300 shadow-[0_1px_2px_rgb(28_25_23/0.05)] hover:bg-red-50",
+  ghost: "text-stone-700 hover:bg-stone-900/5",
 };
 
-// 터치 영역 48px 이상, 근로자 화면은 xl 사용
+// 터치 영역 48px 이상, 근로자 화면은 lg 이상 사용
 const SIZES: Record<Size, string> = {
-  sm: "min-h-10 px-3 text-sm",
-  md: "min-h-12 px-4 text-base",
-  lg: "min-h-14 px-6 text-lg",
-  xl: "min-h-20 px-6 text-2xl",
+  sm: "min-h-10 rounded-xl px-3.5 text-sm",
+  md: "min-h-12 rounded-xl px-4 text-base",
+  lg: "min-h-14 rounded-2xl px-6 text-lg",
+  xl: "min-h-20 rounded-3xl px-6 text-2xl",
 };
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", extra = "") {
