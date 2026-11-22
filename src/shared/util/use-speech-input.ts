@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 // 브라우저 내장 음성 인식(Web Speech API) 중 쓰는 부분만 정의, 표준 DOM 타입에 없음
-export type RecognitionEvent = { results: ArrayLike<ArrayLike<{ transcript: string }>> };
+export type RecognitionEvent = {
+  results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }>;
+};
 type Recognition = {
   lang: string;
   interimResults: boolean;
@@ -44,6 +46,11 @@ export function readTranscript(event: RecognitionEvent): string {
     .trim();
 }
 
+// 마지막 결과의 확정 여부
+export function isFinalResult(event: RecognitionEvent): boolean {
+  return event.results[event.results.length - 1]?.isFinal === true;
+}
+
 const subscribeNothing = () => () => {};
 
 // 말로 입력받는 훅, 한 번 누르면 한 문장을 듣고 onResult로 전달
@@ -56,6 +63,8 @@ export function useSpeechInput(onResult: (text: string) => void) {
   );
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<SpeechInputError | null>(null);
+  // 듣는 동안 지금까지 들린 말
+  const [interim, setInterim] = useState("");
   const recognitionRef = useRef<Recognition | null>(null);
   const onResultRef = useRef(onResult);
   // 사용자가 직접 멈췄는지 여부
@@ -84,30 +93,43 @@ export function useSpeechInput(onResult: (text: string) => void) {
 
     const recognition = new Recognition();
     recognition.lang = "ko-KR";
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.continuous = false;
-    // 결과나 오류로 마무리됐는지 여부
-    let settled = false;
+    // 가장 최근에 들린 말, 브라우저가 확정 결과 없이 인식을 끝내는 경우 대비
+    let heard = "";
+    let delivered = false;
+    let failed = false;
+    const deliver = () => {
+      if (delivered || !heard) return;
+      delivered = true;
+      setInterim("");
+      setError(null);
+      onResultRef.current(heard);
+    };
     recognition.onresult = (event) => {
       const text = readTranscript(event);
       if (!text) return;
-      settled = true;
-      onResultRef.current(text);
+      heard = text;
+      if (isFinalResult(event)) deliver();
+      else setInterim(text);
     };
     recognition.onerror = (event) => {
-      settled = true;
+      failed = true;
       setError(toSpeechInputError(event.error));
     };
     recognition.onend = () => {
       recognitionRef.current = null;
       setListening(false);
+      setInterim("");
+      if (heard) deliver();
       // 들린 말도 오류도 없이 끝난 경우 다시 누르도록 안내, 직접 멈춘 경우는 제외
-      if (!settled && !stoppedRef.current) setError("silent");
+      else if (!failed && !stoppedRef.current) setError("silent");
     };
 
     recognitionRef.current = recognition;
     stoppedRef.current = false;
     setError(null);
+    setInterim("");
     setListening(true);
     try {
       recognition.start();
@@ -123,5 +145,5 @@ export function useSpeechInput(onResult: (text: string) => void) {
     recognitionRef.current?.stop();
   }, []);
 
-  return { supported, listening, error, start, stop };
+  return { supported, listening, interim, error, start, stop };
 }
