@@ -7,6 +7,8 @@ import { buildDraftPrompt, buildRevisePrompt, GUIDE_SYSTEM_PROMPT } from "./prom
 
 // 재작성 최대 횟수, 초안 1회 + 재작성 2회
 export const MAX_REVISIONS = 2;
+// 재작성을 새로 시작할 수 있는 시간 한도, 넘기면 그때까지의 가장 좋은 결과 반환
+export const REVISION_BUDGET_MS = 25_000;
 
 // 그림 기호 하나 (변형 선택자와 결합 기호 포함)
 const EMOJI_PATTERN = /\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/u;
@@ -42,7 +44,9 @@ const countProblems = ({ issuesByStep, uncovered }: Checked) =>
 export async function generateGuide(
   input: { manual: string; titleHint?: string },
   generate: StructuredGenerator,
+  now: () => number = Date.now,
 ): Promise<GuideGenerationResult> {
+  const startedAt = now();
   const { manual, titleHint } = input;
   const request = (operation: string, prompt: string) =>
     generate({
@@ -90,7 +94,11 @@ export async function generateGuide(
   let best = check(draft);
   const issuesFound = countProblems(best);
 
-  while (countProblems(best) > 0 && rounds <= MAX_REVISIONS) {
+  while (
+    countProblems(best) > 0 &&
+    rounds <= MAX_REVISIONS &&
+    now() - startedAt < REVISION_BUDGET_MS
+  ) {
     draft = await request(
       "guide revise",
       buildRevisePrompt(manual, best.draft.steps, best.issuesByStep, best.uncovered),
