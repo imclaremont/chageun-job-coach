@@ -5,7 +5,7 @@ import { createProgressService } from "@/features/progress/service";
 import { createMemoryStore } from "@/infra/store/memory-store";
 import { AppError, ErrorCode } from "@/shared/error";
 import { TOOL, type ToolChat } from "./agent/run-coaching";
-import { AUTO_CALL_COACH_AT, createCoachingService } from "./service";
+import { AUTO_CALL_COACH_AT, createCoachingService, HURT_REASON } from "./service";
 
 const guide = buildSampleGuide();
 const stepId = guide.steps[2].id;
@@ -97,11 +97,76 @@ describe("coachingService", () => {
   it("근로자가 직접 부른 호출은 코치가 확인할 때까지 열려 있음", async () => {
     const { progress, coaching, run } = await setup();
 
-    await coaching.callCoach(run.id, { stepId });
+    await coaching.callCoach(run.id, { stepId, reason: "help" });
     const [help] = (await progress.dashboard()).openHelp;
-    expect(help).toMatchObject({ kind: "human", status: "open", reason: "근로자가 직접 호출" });
+    expect(help).toMatchObject({
+      kind: "human",
+      status: "open",
+      urgent: false,
+      reason: "근로자가 직접 호출",
+    });
 
     await progress.resolveHelp(help.id);
     expect((await progress.dashboard()).openHelp).toHaveLength(0);
+  });
+
+  it("'다쳤어요' 버튼은 긴급 호출로 기록", async () => {
+    const { progress, coaching, run } = await setup();
+
+    await coaching.callCoach(run.id, { stepId, reason: "hurt" });
+
+    expect((await progress.dashboard()).openHelp[0]).toMatchObject({
+      kind: "human",
+      urgent: true,
+      reason: HURT_REASON,
+    });
+  });
+
+  it("다쳤다는 말은 AI를 거치지 않고 바로 긴급 호출", async () => {
+    let aiCalls = 0;
+    const counting: ToolChat = async (options) => {
+      aiCalls += 1;
+      return answering(options);
+    };
+    const { progress, coaching, run } = await setup(counting);
+
+    const reply = await coaching.ask(run.id, { stepId, question: "뜨거운 물에 손을 데었어요" });
+    const dashboard = await progress.dashboard();
+
+    expect(aiCalls).toBe(0);
+    expect(reply).toMatchObject({ urgent: true, coachCalled: true, source: "rule", helpCount: 0 });
+    expect(dashboard.openHelp[0]).toMatchObject({
+      urgent: true,
+      question: "뜨거운 물에 손을 데었어요",
+      reason: HURT_REASON,
+    });
+    // 막힘 횟수와 AI 코칭 기록에는 미포함
+    expect(dashboard.recentCoaching).toHaveLength(0);
+    expect(dashboard.stuckSteps).toHaveLength(0);
+  });
+
+  it("AI가 다친 상황으로 판단한 호출도 긴급으로 기록", async () => {
+    const urgentByAi: ToolChat = async ({ messages }) => {
+      const called = messages.some((message) => message.role === "tool");
+      const next = called
+        ? { name: TOOL.ANSWER, args: { message: "선생님을 불렀어요.", encouragement: "" } }
+        : { name: TOOL.CALL_COACH, args: { reason: "빨간 것이 난다고 말함", urgent: true } };
+      return {
+        content: null,
+        tool_calls: [
+          {
+            id: "call_1",
+            type: "function",
+            function: { name: next.name, arguments: JSON.stringify(next.args) },
+          },
+        ],
+      };
+    };
+    const { progress, coaching, run } = await setup(urgentByAi);
+
+    const reply = await coaching.ask(run.id, { stepId, question: "손에서 빨간 게 나와요" });
+
+    expect(reply.urgent).toBe(true);
+    expect((await progress.dashboard()).openHelp[0]).toMatchObject({ urgent: true });
   });
 });

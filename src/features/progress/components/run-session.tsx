@@ -1,10 +1,15 @@
 "use client";
 
-import { Check, CircleHelp, PartyPopper, TriangleAlert, Volume2, X } from "lucide-react";
+import { Bandage, Check, CircleHelp, PartyPopper, TriangleAlert, Volume2, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { CoachingResponse } from "@/features/coaching";
-import { HelpPanel, type HelpState } from "@/features/coaching/components";
+import {
+  HelpPanel,
+  UrgentNotice,
+  type HelpState,
+  type UrgentStatus,
+} from "@/features/coaching/components";
 import type { WorkerGuideResponse } from "@/features/guide";
 import { Button, LinkButton } from "@/shared/ui/button";
 import { errorMessage, postJson } from "@/shared/util/api-client";
@@ -16,11 +21,12 @@ type Props = { initialRun: RunResponse; guide: WorkerGuideResponse };
 // 좁은 화면에서도 글자가 한 줄에 들어가도록 아이콘을 위에 배치
 const STACKED_BUTTON = "flex-col gap-1 py-3 whitespace-nowrap max-sm:text-xl";
 
-// 단계 수행 화면: 한 화면에 한 단계, 아래 고정 버튼 두 개
+// 단계 수행 화면: 한 화면에 한 단계, 아래 고정 버튼은 '다쳤어요'와 주요 버튼 두 개
 export function RunSession({ initialRun, guide }: Props) {
   const [run, setRun] = useState(initialRun);
   const [help, setHelp] = useState<HelpState | null>(null);
   const [coachCalled, setCoachCalled] = useState(false);
+  const [urgent, setUrgent] = useState<UrgentStatus | null>(null);
   const [showDetail, setShowDetail] = useState(initialRun.mode === "full");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +82,12 @@ export function RunSession({ initialRun, guide }: Props) {
         stepId: step.id,
         question,
       });
+      // 다쳤거나 아프다는 말이면 도움말 대신 기다림 안내
+      if (reply.urgent) {
+        setHelp(null);
+        setUrgent("called");
+        return;
+      }
       setHelp({ status: "ready", reply });
       if (reply.coachCalled) setCoachCalled(true);
     } catch (caught) {
@@ -93,6 +105,23 @@ export function RunSession({ initialRun, guide }: Props) {
     }
   }
 
+  // '다쳤어요': AI 없이 바로 사람 호출
+  async function reportHurt() {
+    stopSpeaking();
+    setHelp(null);
+    setError(null);
+    setUrgent("called");
+    try {
+      await postJson(`/api/runs/${run.id}/call-coach`, { stepId: step.id, reason: "hurt" });
+    } catch {
+      setUrgent("failed");
+    }
+  }
+
+  if (urgent) {
+    return <UrgentNotice status={urgent} onRetry={reportHurt} onResume={() => setUrgent(null)} />;
+  }
+
   const readAloud = () =>
     speak(
       [step.action, step.detail, step.caution ? `조심해요. ${step.caution}` : ""]
@@ -101,7 +130,7 @@ export function RunSession({ initialRun, guide }: Props) {
     );
 
   return (
-    <div className="flex flex-1 flex-col gap-6 pb-36">
+    <div className="flex flex-1 flex-col gap-6 pb-56">
       <div className="flex items-center gap-4">
         <div
           role="progressbar"
@@ -193,21 +222,27 @@ export function RunSession({ initialRun, guide }: Props) {
       )}
 
       <div className="fixed inset-x-0 bottom-0 border-t border-stone-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto grid w-full max-w-2xl grid-cols-2 gap-3 px-4 py-4">
-          <Button
-            variant="secondary"
-            size="xl"
-            className={STACKED_BUTTON}
-            disabled={saving || help?.status === "loading"}
-            onClick={() => askHelp()}
-          >
-            <CircleHelp aria-hidden className="size-8" />
-            <span>잘 모르겠어요</span>
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 py-4">
+          <Button variant="danger" size="lg" className="text-xl" onClick={reportHurt}>
+            <Bandage aria-hidden className="size-7" />
+            다쳤어요
           </Button>
-          <Button size="xl" className={STACKED_BUTTON} disabled={saving} onClick={complete}>
-            <Check aria-hidden className="size-8" />
-            <span>다 했어요</span>
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="secondary"
+              size="xl"
+              className={STACKED_BUTTON}
+              disabled={saving || help?.status === "loading"}
+              onClick={() => askHelp()}
+            >
+              <CircleHelp aria-hidden className="size-8" />
+              <span>잘 모르겠어요</span>
+            </Button>
+            <Button size="xl" className={STACKED_BUTTON} disabled={saving} onClick={complete}>
+              <Check aria-hidden className="size-8" />
+              <span>다 했어요</span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

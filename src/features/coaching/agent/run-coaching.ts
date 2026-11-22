@@ -41,8 +41,22 @@ export function buildFallbackReply(step: Step, trace: string[] = []): CoachingRe
     smallSteps,
     encouragement: ENCOURAGEMENT,
     coachCalled: false,
+    urgent: false,
     source: "fallback",
     trace,
+  };
+}
+
+// 다쳤다고 알렸을 때의 고정 답변, AI를 거치지 않고 바로 사람 호출
+export function buildUrgentReply(): CoachingReply {
+  return {
+    message: "선생님을 불렀어요. 하던 일을 멈춰요. 그 자리에서 기다려요.",
+    smallSteps: [],
+    encouragement: "선생님이 곧 와요",
+    coachCalled: true,
+    urgent: true,
+    source: "rule",
+    trace: [],
   };
 }
 
@@ -99,7 +113,11 @@ export async function runCoachingAgent(
 
   if (!state.answer) {
     // 답변을 끝내지 못한 경우 승인된 단계 내용으로 대체, 사람 호출 결정은 유지
-    return { ...buildFallbackReply(step, trace), coachCalled: state.coachReason !== null };
+    return {
+      ...buildFallbackReply(step, trace),
+      coachCalled: state.coachReason !== null,
+      urgent: state.coachUrgent,
+    };
   }
 
   return {
@@ -107,6 +125,7 @@ export async function runCoachingAgent(
     smallSteps: state.smallSteps,
     encouragement: state.answer.encouragement || ENCOURAGEMENT,
     coachCalled: state.coachReason !== null,
+    urgent: state.coachUrgent,
     source: "ai",
     trace,
   };

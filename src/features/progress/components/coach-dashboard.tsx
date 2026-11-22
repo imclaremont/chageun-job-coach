@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, CircleCheck, Footprints, Sparkles, TrendingDown } from "lucide-react";
+import { BellRing, CircleCheck, Footprints, Siren, Sparkles, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/shared/ui/button";
@@ -160,14 +160,27 @@ export function CoachDashboard() {
             {openHelp.map((help) => (
               <li
                 key={help.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4"
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 ${
+                  help.urgent ? "bg-red-50 ring-2 ring-red-600" : "bg-white"
+                }`}
               >
                 <div className="flex flex-col gap-1 text-base">
+                  {help.urgent && (
+                    <span className="flex items-center gap-1.5 font-bold text-red-800">
+                      <Siren aria-hidden className="size-5" />
+                      긴급 · 다쳤다고 알렸어요
+                    </span>
+                  )}
                   <span>
                     <span className="font-semibold">{help.workerName}</span> · {help.guideTitle}{" "}
                     {help.stepNumber}번 단계
                   </span>
                   <span className="text-stone-700">&ldquo;{help.stepAction}&rdquo;</span>
+                  {help.question && (
+                    <span>
+                      <span className="font-semibold">근로자의 말</span> {help.question}
+                    </span>
+                  )}
                   <span className="text-sm text-stone-600">
                     {help.reason} · {timeAgo(help.createdAt)}
                   </span>

@@ -1,10 +1,11 @@
 "use client";
 
-import { BellRing, LoaderCircle, Send, ThumbsUp, Volume2 } from "lucide-react";
+import { BellRing, LoaderCircle, Mic, MicOff, Send, ThumbsUp, Volume2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/shared/ui/button";
 import { AiBadge } from "@/shared/ui/feedback";
-import { canSpeak, speak } from "@/shared/util/speech";
+import { canSpeak, speak, stopSpeaking } from "@/shared/util/speech";
+import { useSpeechInput, type SpeechInputError } from "@/shared/util/use-speech-input";
 import type { CoachingResponse } from "../schema";
 
 export type HelpState =
@@ -22,18 +23,42 @@ type Props = {
 
 // 자주 하는 질문, 누르면 바로 물어봄
 const QUICK_QUESTIONS = ["어디에 있어요?", "얼마나 해요?", "어떻게 해요?"];
+const QUESTION_MAX_LENGTH = 200;
+
+// 말로 물어보기가 안 될 때의 안내
+const VOICE_ERRORS: Record<SpeechInputError, string> = {
+  denied: "마이크를 쓸 수 없어요. 글로 써요.",
+  silent: "잘 안 들렸어요. 다시 눌러요.",
+  failed: "지금은 듣기 어려워요. 글로 써요.",
+};
 
 // '잘 모르겠어요'를 눌렀을 때의 코칭 화면
 export function HelpPanel({ help, coachCalled, onAsk, onCallCoach, onClose }: Props) {
   const [question, setQuestion] = useState("");
+  // 마지막으로 물어본 말, 말로 물었을 때 제대로 들렸는지 확인용
+  const [asked, setAsked] = useState<string | null>(null);
   const busy = help.status === "loading";
+
+  function ask(text: string) {
+    setAsked(text);
+    onAsk(text);
+  }
+
+  const voice = useSpeechInput((heard) => ask(heard.slice(0, QUESTION_MAX_LENGTH)));
+
+  function toggleVoice() {
+    if (voice.listening) return voice.stop();
+    // 읽어 주는 소리가 마이크에 섞이지 않도록 중단
+    stopSpeaking();
+    voice.start();
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = question.trim();
     if (!text || busy) return;
     setQuestion("");
-    onAsk(text);
+    ask(text);
   }
 
   return (
@@ -43,6 +68,12 @@ export function HelpPanel({ help, coachCalled, onAsk, onCallCoach, onClose }: Pr
       aria-live="polite"
       className="flex flex-col gap-5 rounded-3xl bg-white p-6 shadow-sm ring-2 ring-teal-600"
     >
+      {asked && (
+        <p className="rounded-2xl bg-stone-100 px-4 py-3 text-xl text-stone-800">
+          <span className="font-semibold">물어본 말</span> {asked}
+        </p>
+      )}
+
       {help.status === "loading" && (
         <p role="status" className="flex items-center gap-3 text-2xl font-semibold text-stone-800">
           <LoaderCircle aria-hidden className="size-8 animate-spin text-teal-700" />
@@ -124,17 +155,46 @@ export function HelpPanel({ help, coachCalled, onAsk, onCallCoach, onClose }: Pr
               variant="secondary"
               size="lg"
               disabled={busy}
-              onClick={() => onAsk(quick)}
+              onClick={() => ask(quick)}
             >
               {quick}
             </Button>
           ))}
         </div>
+        {voice.supported && (
+          <div className="flex flex-col gap-2">
+            <Button
+              variant={voice.listening ? "primary" : "secondary"}
+              size="lg"
+              className="text-xl"
+              disabled={busy}
+              aria-pressed={voice.listening}
+              onClick={toggleVoice}
+            >
+              {voice.listening ? (
+                <MicOff aria-hidden className="size-7" />
+              ) : (
+                <Mic aria-hidden className="size-7" />
+              )}
+              {voice.listening ? "그만 듣기" : "말로 물어보기"}
+            </Button>
+            {voice.listening && (
+              <p role="status" className="text-xl font-semibold text-teal-800">
+                듣고 있어요. 지금 말해요.
+              </p>
+            )}
+            {voice.error && !voice.listening && (
+              <p role="alert" className="text-xl text-stone-800">
+                {VOICE_ERRORS[voice.error]}
+              </p>
+            )}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex gap-3">
           <input
             className="min-h-14 w-full rounded-2xl border border-stone-300 bg-white px-4 text-xl placeholder:text-stone-400"
             value={question}
-            maxLength={200}
+            maxLength={QUESTION_MAX_LENGTH}
             disabled={busy}
             placeholder="궁금한 것을 써요"
             aria-label="궁금한 것 쓰기"

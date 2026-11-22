@@ -117,4 +117,33 @@ describe("progressService", () => {
     expect(dashboard.activeRuns[0]).toMatchObject({ workerName: "하늘", doneSteps: 1 });
     expect(dashboard.recentDone[0]).toMatchObject({ workerName: "바다", status: "done" });
   });
+
+  it("사람 호출은 긴급 호출을 맨 위에, 나머지는 최신순으로 정렬", async () => {
+    const service = setup();
+    const run = await service.startRun(start);
+    const call = (reason: string, urgent: boolean) =>
+      service.recordHelp({
+        run,
+        stepId: guide.steps[0].id,
+        stepNumber: 1,
+        stepAction: guide.steps[0].action,
+        kind: "human",
+        urgent,
+        question: null,
+        answer: null,
+        reason,
+        trace: [],
+      });
+    await call("먼저 부름", false);
+    await call("다쳤다고 알림", true);
+    await call("나중에 부름", false);
+
+    const { openHelp } = await service.dashboard();
+
+    expect(openHelp.map((help) => help.reason)).toEqual([
+      "다쳤다고 알림",
+      "나중에 부름",
+      "먼저 부름",
+    ]);
+  });
 });
