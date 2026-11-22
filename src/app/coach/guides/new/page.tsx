@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NewGuideForm } from "@/features/guide";
+import { NewGuideForm } from "@/features/guide/components";
 
 export const metadata: Metadata = { title: "새 가이드 만들기" };
 

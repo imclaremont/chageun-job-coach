@@ -1,7 +1,4 @@
-// 클라이언트에서도 쓸 수 있는 진입점 (스키마, 타입, 화면), 서버 로직은 ./server
-export { GuideList } from "./components/guide-list";
-export { GuideReview } from "./components/guide-review";
-export { NewGuideForm } from "./components/new-guide-form";
+// 스키마·타입·상수 진입점, 화면은 ./components, 서버 로직은 ./server
 export { ACTION_MAX_LENGTH } from "./easy-read";
 export { EXAMPLE_MANUALS } from "./examples";
 export {

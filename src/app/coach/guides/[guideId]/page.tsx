@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { GuideReview } from "@/features/guide";
+import { GuideReview } from "@/features/guide/components";
 import { LoadingBlock } from "@/shared/ui/feedback";
 
 export const metadata: Metadata = { title: "가이드 검수" };

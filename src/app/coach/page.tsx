@@ -1,4 +1,4 @@
-import { GuideList } from "@/features/guide";
+import { GuideList } from "@/features/guide/components";
 
 export default function CoachHomePage() {
   return (
