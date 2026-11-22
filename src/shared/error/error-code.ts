@@ -33,4 +33,10 @@ export const ErrorCode = {
     "GUIDE_HAS_ISSUES",
     "확인이 필요한 단계가 남아 있습니다. 내용을 확인한 뒤 승인해 주세요",
   ),
+
+  // 수행과 도움 요청
+  RUN_NOT_FOUND: define(404, "RUN_NOT_FOUND", "수행 기록을 찾을 수 없습니다"),
+  WORKER_NOT_FOUND: define(404, "WORKER_NOT_FOUND", "근로자를 찾을 수 없습니다"),
+  STEP_NOT_FOUND: define(404, "STEP_NOT_FOUND", "단계를 찾을 수 없습니다"),
+  HELP_NOT_FOUND: define(404, "HELP_NOT_FOUND", "도움 요청을 찾을 수 없습니다"),
 } as const satisfies Record<string, ErrorCodeDef>;
