@@ -1,8 +1,9 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Quote, Trash2, TriangleAlert, UserPen } from "lucide-react";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { AiBadge } from "@/shared/ui/feedback";
+import { AiBadge, FIELD_CLASS } from "@/shared/ui/feedback";
 import { ACTION_MAX_LENGTH } from "../easy-read";
 import type { StepIssue } from "../schema";
 
@@ -34,8 +35,6 @@ type Props = {
   onRemove: () => void;
 };
 
-const FIELD_CLASS =
-  "w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-base placeholder:text-stone-400";
 const LABEL_CLASS = "flex flex-col gap-1.5 text-sm font-medium text-stone-700";
 
 // 검수 화면의 단계 카드: 내용 수정, 원문 근거와 점검 경고 확인
@@ -54,14 +53,14 @@ export function StepEditor({
   const tooLong = step.action.trim().length > ACTION_MAX_LENGTH;
 
   return (
-    <li className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+    <li className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-card ring-1 ring-stone-900/5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-full bg-teal-700 text-lg font-bold text-white">
+          <span className="flex size-10 items-center justify-center rounded-full bg-brand-700 text-lg font-extrabold text-white tabular-nums">
             {number}
           </span>
           <input
-            className="w-16 rounded-xl border border-stone-300 bg-white px-2 py-2 text-center text-2xl"
+            className="w-16 rounded-xl border border-stone-300 bg-brand-50/60 px-2 py-1.5 text-center text-2xl transition-colors hover:border-stone-400 focus:border-brand-600"
             value={step.emoji}
             maxLength={8}
             disabled={disabled}
@@ -69,16 +68,13 @@ export function StepEditor({
             onChange={(event) => onChange({ emoji: event.target.value })}
           />
           {step.editedByCoach || step.touched ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-sm font-medium text-sky-800">
-              <UserPen aria-hidden className="size-4" />
+            <Badge tone="sky" icon={<UserPen aria-hidden className="size-4" />}>
               코치 수정
-            </span>
+            </Badge>
           ) : aiGenerated ? (
             <AiBadge />
           ) : (
-            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-sm font-medium text-amber-900">
-              기본 제공
-            </span>
+            <Badge tone="amber">기본 제공</Badge>
           )}
         </div>
         <div className="flex items-center gap-1">
@@ -115,12 +111,14 @@ export function StepEditor({
       <label className={LABEL_CLASS}>
         <span className="flex justify-between">
           지금 할 일
-          <span className={tooLong ? "font-semibold text-amber-800" : "font-normal text-stone-500"}>
+          <span
+            className={`tabular-nums ${tooLong ? "font-bold text-amber-800" : "font-normal text-stone-600"}`}
+          >
             {step.action.trim().length} / {ACTION_MAX_LENGTH}자
           </span>
         </span>
         <input
-          className={`${FIELD_CLASS} text-lg font-semibold`}
+          className={`${FIELD_CLASS} text-lg font-bold`}
           value={step.action}
           maxLength={80}
           disabled={disabled}
@@ -172,7 +170,7 @@ export function StepEditor({
           원문 근거
         </span>
         <input
-          className={`${FIELD_CLASS} ${noSource ? "border-red-400 bg-red-50" : "bg-stone-50"}`}
+          className={`${FIELD_CLASS} ${noSource ? "border-red-400 bg-red-50" : "bg-stone-50"} text-stone-700`}
           value={step.sourceQuote}
           maxLength={300}
           disabled={disabled}
@@ -189,9 +187,9 @@ export function StepEditor({
             {step.issues.map((issue, issueIndex) => (
               <li
                 key={`${issue.code}-${issue.field}-${issueIndex}`}
-                className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-base text-amber-900"
+                className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-base text-amber-950 ring-1 ring-amber-200"
               >
-                <TriangleAlert aria-hidden className="mt-0.5 size-5 shrink-0" />
+                <TriangleAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-amber-700" />
                 {issue.message}
               </li>
             ))}

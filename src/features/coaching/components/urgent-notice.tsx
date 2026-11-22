@@ -30,11 +30,17 @@ export function UrgentNotice({ status, onRetry, onResume }: Props) {
   return (
     <section
       role="alert"
-      className="flex flex-1 flex-col items-center justify-center gap-8 text-center"
+      className="flex flex-1 animate-rise flex-col items-center justify-center gap-8 rounded-[2rem] bg-red-50 px-6 py-10 text-center ring-1 ring-red-200"
     >
-      <Siren aria-hidden className="size-24 text-red-700" />
-      <h1 className="text-5xl font-bold leading-snug">{title}</h1>
-      <p className="text-3xl leading-relaxed text-stone-800">
+      <div className="relative flex size-36 items-center justify-center">
+        {status === "called" && (
+          <span aria-hidden className="absolute inset-3 animate-ring rounded-full bg-red-400" />
+        )}
+        <span aria-hidden className="absolute inset-3 rounded-full bg-red-600" />
+        <Siren aria-hidden className="relative size-16 text-white" />
+      </div>
+      <h1 className="text-4xl leading-snug font-extrabold text-red-950 sm:text-5xl">{title}</h1>
+      <p className="text-3xl leading-relaxed font-semibold text-stone-900">
         {lines.map((line) => (
           <span key={line} className="block">
             {line}
