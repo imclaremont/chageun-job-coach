@@ -1,8 +1,9 @@
 import { GuideList } from "@/features/guide/components";
+import { CoachDashboard } from "@/features/progress/components";
 
 export default function CoachHomePage() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">안녕하세요, 코치님</h1>
         <p className="text-lg text-stone-600">
@@ -10,6 +11,7 @@ export default function CoachHomePage() {
           보입니다.
         </p>
       </div>
+      <CoachDashboard />
       <GuideList />
     </div>
   );
