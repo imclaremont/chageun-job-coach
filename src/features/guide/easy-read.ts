@@ -1,3 +1,4 @@
+import { findUngroundedWords } from "./coverage";
 import type { DraftStep, StepIssue } from "./schema";
 
 // 쉬운 말 기준, 프롬프트와 별개로 코드에서 다시 확인
@@ -126,6 +127,11 @@ export function mentionsHazard(text: string): boolean {
   return HAZARD_PATTERN.test(text);
 }
 
+// '~요'로 끝나는 쉬운 말투 여부
+export function endsPolitely(sentence: string): boolean {
+  return /요[.!?]*$/.test(sentence.trim());
+}
+
 // 단계 하나의 쉬운 말·근거·안전 점검
 export function checkStep(step: DraftStep, manual: string): StepIssue[] {
   const issues: StepIssue[] = [];
@@ -177,12 +183,34 @@ export function checkStep(step: DraftStep, manual: string): StepIssue[] {
     }
   }
 
+  for (const field of ["action", "detail", "caution", "doneCheck"] as const) {
+    const impolite = splitSentences(step[field] ?? "").find((sentence) => !endsPolitely(sentence));
+    if (impolite) {
+      issues.push({
+        code: "NOT_EASY_STYLE",
+        field,
+        message: `'~해요' 말투가 아니에요: "${impolite}"`,
+      });
+    }
+  }
+
   if (!isGroundedInManual(step.sourceQuote, manual)) {
     issues.push({
       code: "NO_SOURCE",
       field: "sourceQuote",
       message: "원문 매뉴얼에서 근거를 찾지 못했어요, 내용을 직접 확인해 주세요",
     });
+  }
+
+  for (const field of ["detail", "caution"] as const) {
+    const words = findUngroundedWords(step[field] ?? "", manual);
+    if (words.length > 0) {
+      issues.push({
+        code: "NO_SOURCE",
+        field,
+        message: `원문에 없는 말이 있어요: ${words.join(", ")}`,
+      });
+    }
   }
 
   if (!step.caution?.trim() && mentionsHazard(`${step.sourceQuote} ${action} ${detail}`)) {
@@ -194,4 +222,30 @@ export function checkStep(step: DraftStep, manual: string): StepIssue[] {
   }
 
   return issues;
+}
+
+// 가이드 전체 점검: 단계별 점검 + 단계 사이의 설명 반복
+export function checkSteps(steps: DraftStep[], manual: string): StepIssue[][] {
+  const seenDetails = new Set<string>();
+
+  return steps.map((step) => {
+    const issues = checkStep(step, manual);
+    const detail = normalize(step.detail);
+
+    if (detail && detail === normalize(step.action)) {
+      issues.push({
+        code: "REPEATED_TEXT",
+        field: "detail",
+        message: "할 일과 설명이 같아요, 설명은 비워도 돼요",
+      });
+    } else if (detail && seenDetails.has(detail)) {
+      issues.push({
+        code: "REPEATED_TEXT",
+        field: "detail",
+        message: "앞 단계와 설명이 같아요, 이 단계의 방법만 적어 주세요",
+      });
+    }
+    if (detail) seenDetails.add(detail);
+    return issues;
+  });
 }

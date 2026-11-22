@@ -8,7 +8,7 @@ import type { DraftGuide, DraftStep, StepInput } from "./schema";
 import { toWorkerGuide } from "./schema";
 import { createGuideService } from "./service";
 
-const MANUAL = "1. 컵에 얼음을 가득 채운다. 2. 뚜껑을 닫는다. 문의는 010-1234-5678";
+const MANUAL = "1. 컵에 얼음을 가득 채운다. 문의는 010-1234-5678";
 
 const iceStep: DraftStep = {
   action: "컵에 얼음을 채워요",
@@ -111,6 +111,18 @@ describe("guideService", () => {
 
     const approved = await service.approve(guide.id, { acknowledgeIssues: true });
     expect(approved.status).toBe("approved");
+  });
+
+  it("원문 내용이 단계에 없으면 누락으로 표시하고 확인 없이 승인 불가", async () => {
+    const { service } = setup({ title: "", steps: [iceStep], rejectReason: null });
+    const manual = "컵에 얼음을 가득 채운다. 손님에게 5분 안에 건넨다.";
+
+    const guide = await service.createFromManual({ manual });
+
+    expect(guide.uncovered).toEqual(["손님에게 5분 안에 건넨다"]);
+    expect(await errorCode(() => service.approve(guide.id, { acknowledgeIssues: false }))).toBe(
+      "GUIDE_HAS_ISSUES",
+    );
   });
 
   it("승인 후 수정하면 초안으로 돌아가고 다시 점검", async () => {

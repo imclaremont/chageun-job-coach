@@ -8,6 +8,8 @@ export const StepIssueCode = z.enum([
   "HARD_WORD",
   "MISSING_CAUTION",
   "EMPTY_FIELD",
+  "NOT_EASY_STYLE",
+  "REPEATED_TEXT",
 ]);
 export const StepField = z.enum(["action", "detail", "caution", "doneCheck", "sourceQuote"]);
 export const StepIssueSchema = z.object({
@@ -58,6 +60,8 @@ export const GuideSchema = z.object({
   workplace: z.string(),
   manual: z.string(),
   steps: z.array(StepSchema),
+  // 원문 구절 중 단계에 반영되지 않은 것으로 추정되는 내용, 코치 검수용
+  uncovered: z.array(z.string()).default([]),
   status: GuideStatus,
   isSample: z.boolean(),
   maskedCount: z.number(),
@@ -132,8 +136,9 @@ export type WorkerGuideResponse = {
   steps: WorkerStepResponse[];
 };
 
-const countIssues = (guide: Guide) =>
-  guide.steps.reduce((total, step) => total + step.issues.length, 0);
+// 코치가 확인해야 할 건수: 단계별 점검 경고 + 원문 누락 추정
+export const countIssues = (guide: Pick<Guide, "steps" | "uncovered">) =>
+  guide.steps.reduce((total, step) => total + step.issues.length, 0) + guide.uncovered.length;
 
 export function toGuideResponse(guide: Guide): GuideResponse {
   return { ...guide, issueCount: countIssues(guide) };
