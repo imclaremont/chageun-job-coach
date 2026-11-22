@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Stop: 커밋되지 않은 TS 변경이 있으면 타입 검사, 오류가 있으면 종료를 막고 오류를 되돌려 줌
+// Stop: 미커밋 TS 변경이 있으면 타입 검사, 오류 시 종료 차단 후 오류 전달
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
