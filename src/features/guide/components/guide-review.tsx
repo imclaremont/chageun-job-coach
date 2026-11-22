@@ -1,10 +1,22 @@
 "use client";
 
-import { ArrowLeft, CircleCheck, Eye, LoaderCircle, Plus, Save, TriangleAlert } from "lucide-react";
+import {
+  ArrowLeft,
+  CircleCheck,
+  Eye,
+  FilePen,
+  FileText,
+  LoaderCircle,
+  Plus,
+  Save,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { Badge } from "@/shared/ui/badge";
 import { Button, LinkButton } from "@/shared/ui/button";
-import { ErrorBlock, LoadingBlock } from "@/shared/ui/feedback";
+import { ErrorBlock, FIELD_CLASS, LoadingBlock } from "@/shared/ui/feedback";
 import { errorMessage, patchJson, postJson } from "@/shared/util/api-client";
 import { useApi } from "@/shared/util/use-api";
 import { MAX_STEPS, type GuideResponse, type StepInput } from "../schema";
@@ -149,17 +161,17 @@ function ReviewEditor({
     <div className="flex flex-col gap-6 pb-40">
       <Link
         href="/coach"
-        className="inline-flex items-center gap-1 self-start text-base text-stone-600 hover:text-stone-900"
+        className="inline-flex items-center gap-1.5 self-start rounded-lg text-base font-semibold text-stone-600 hover:text-stone-900"
       >
         <ArrowLeft aria-hidden className="size-5" />
-        가이드 목록
+        코치 홈
       </Link>
 
       <header className="flex flex-col gap-3">
         <label className="flex flex-col gap-1.5 text-sm font-medium text-stone-700">
           업무 이름
           <input
-            className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-2xl font-bold"
+            className={`${FIELD_CLASS} py-3 text-2xl font-extrabold sm:text-3xl`}
             value={title}
             maxLength={60}
             disabled={busy !== null}
@@ -167,31 +179,47 @@ function ReviewEditor({
           />
         </label>
         <div className="flex flex-wrap items-center gap-2 text-base text-stone-600">
-          {guide.workplace && <span>{guide.workplace}</span>}
-          <span>단계 {steps.length}개</span>
           {approved ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2.5 py-1 text-sm font-medium text-teal-800">
-              <CircleCheck aria-hidden className="size-4" />
+            <Badge tone="brand" icon={<CircleCheck aria-hidden className="size-4" />}>
               승인됨 · 근로자 화면에 보여요
-            </span>
+            </Badge>
           ) : (
-            <span className="rounded-full bg-stone-200 px-2.5 py-1 text-sm font-medium text-stone-700">
+            <Badge icon={<FilePen aria-hidden className="size-4" />}>
               검수 필요 · 근로자 화면에 아직 안 보여요
-            </span>
+            </Badge>
           )}
+          {guide.workplace && <span>{guide.workplace}</span>}
+          <span className="tabular-nums">단계 {steps.length}개</span>
         </div>
       </header>
 
       <section
         aria-label="AI 생성과 점검 요약"
-        className="flex flex-col gap-2 rounded-2xl bg-stone-100 p-4 text-base leading-relaxed text-stone-700"
+        className="flex flex-col gap-3 rounded-3xl bg-white p-5 text-base leading-relaxed text-stone-700 shadow-card ring-1 ring-stone-900/5 sm:p-6"
       >
         {guide.generation ? (
-          <p>
-            AI({guide.generation.model})가 단계를 만들고 스스로 점검했어요. AI 호출{" "}
-            {guide.generation.rounds}회, 점검에서 찾은 문제 {guide.generation.issuesFound}건 중{" "}
-            {guide.generation.issuesFound - guide.generation.issuesRemaining}건을 스스로 고쳤습니다.
-          </p>
+          <>
+            <p className="flex items-center gap-2 font-extrabold text-violet-900">
+              <Sparkles aria-hidden className="size-5" />
+              AI가 단계를 만들고 스스로 점검했어요
+            </p>
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                ["모델", guide.generation.model],
+                ["AI 호출", `${guide.generation.rounds}회`],
+                ["찾은 문제", `${guide.generation.issuesFound}건`],
+                [
+                  "스스로 고침",
+                  `${guide.generation.issuesFound - guide.generation.issuesRemaining}건`,
+                ],
+              ].map(([label, value]) => (
+                <div key={label} className="flex flex-col rounded-2xl bg-stone-100/80 px-4 py-3">
+                  <dt className="text-sm text-stone-600">{label}</dt>
+                  <dd className="text-lg font-extrabold text-stone-900 tabular-nums">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
         ) : (
           <p>기본으로 제공하는 가이드예요. 자유롭게 고쳐 써도 됩니다.</p>
         )}
@@ -199,7 +227,7 @@ function ReviewEditor({
           <p>개인정보로 보이는 값 {guide.maskedCount}개를 가린 뒤 AI에 보냈어요.</p>
         )}
         {guide.uncovered.length > 0 && (
-          <div className="flex flex-col gap-1.5 rounded-xl bg-amber-50 p-3 text-amber-900">
+          <div className="flex flex-col gap-1.5 rounded-2xl bg-amber-50 p-4 text-amber-950 ring-1 ring-amber-200">
             <p className="flex items-center gap-2 font-semibold">
               <TriangleAlert aria-hidden className="size-5 shrink-0" />
               원문에 있는데 단계에서 찾지 못한 내용이에요. 일부러 뺀 것이 아니라면 단계에 넣어
@@ -213,20 +241,24 @@ function ReviewEditor({
           </div>
         )}
         {guide.issueCount > 0 ? (
-          <p className="flex items-center gap-2 font-semibold text-amber-900">
-            <TriangleAlert aria-hidden className="size-5" />
+          <p className="flex items-center gap-2 font-bold text-amber-900">
+            <TriangleAlert aria-hidden className="size-5 shrink-0" />
             확인이 필요한 내용이 {guide.issueCount}건 있어요. 아래 노란 표시를 확인해 주세요.
           </p>
         ) : (
-          <p className="font-medium text-teal-800">
+          <p className="flex items-center gap-2 font-bold text-brand-800">
+            <CircleCheck aria-hidden className="size-5 shrink-0" />
             자동 점검을 모두 통과했어요. 내용이 실제 업무와 맞는지 확인해 주세요.
           </p>
         )}
       </section>
 
-      <details className="rounded-2xl bg-white p-4 ring-1 ring-stone-200">
-        <summary className="cursor-pointer text-lg font-semibold">원문 매뉴얼 보기</summary>
-        <pre className="mt-3 whitespace-pre-wrap font-sans text-base leading-relaxed text-stone-700">
+      <details className="group rounded-3xl bg-white p-5 shadow-card ring-1 ring-stone-900/5 sm:p-6">
+        <summary className="flex cursor-pointer items-center gap-2.5 rounded-lg text-lg font-extrabold">
+          <FileText aria-hidden className="size-5 text-stone-500" />
+          원문 매뉴얼 보기
+        </summary>
+        <pre className="mt-4 rounded-2xl bg-stone-100/80 p-4 font-sans text-base leading-relaxed whitespace-pre-wrap text-stone-800">
           {guide.manual}
         </pre>
       </details>
@@ -257,13 +289,13 @@ function ReviewEditor({
         단계 추가
       </Button>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-stone-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-6 py-4">
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-stone-900/10 bg-paper/90 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-5 py-4 sm:px-8">
           {notice && (
             <p
               role={notice.tone === "error" ? "alert" : "status"}
               className={`rounded-xl px-3 py-2 text-base ${
-                notice.tone === "error" ? "bg-red-50 text-red-800" : "bg-teal-50 text-teal-800"
+                notice.tone === "error" ? "bg-red-50 text-red-900" : "bg-brand-50 text-brand-800"
               }`}
             >
               {notice.text}
@@ -278,7 +310,7 @@ function ReviewEditor({
             <label className="flex items-start gap-3 text-base">
               <input
                 type="checkbox"
-                className="mt-1 size-5 accent-teal-700"
+                className="mt-1 size-5 accent-brand-700"
                 checked={acknowledged}
                 onChange={(event) => setAcknowledged(event.target.checked)}
               />
