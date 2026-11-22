@@ -7,7 +7,7 @@ import { generateGuide, type StructuredGenerator } from "./agent/generate-guide"
 import { findUncoveredClauses } from "./coverage";
 import { checkSteps } from "./easy-read";
 import type { GuideRepository } from "./repository";
-import { buildSampleGuide, SAMPLE_GUIDE_ID } from "./sample";
+import { buildSampleGuide, buildSampleGuides, isSampleGuideId } from "./sample";
 import { countIssues } from "./schema";
 import type {
   ApproveGuideRequest,
@@ -35,24 +35,29 @@ const sameContent = (a: DraftStep, b: DraftStep) =>
 export function createGuideService({ repository, generate, modelName, now }: Dependencies) {
   const timestamp = () => (now?.() ?? new Date()).toISOString();
 
-  async function ensureSample() {
-    if (await repository.findById(SAMPLE_GUIDE_ID)) return;
-    await repository.save(buildSampleGuide());
+  // 저장소에 없는 기본 가이드를 채워 넣은 전체 목록
+  async function withSamples(guides: Guide[]): Promise<Guide[]> {
+    const missing = buildSampleGuides().filter(
+      (sample) => !guides.some((guide) => guide.id === sample.id),
+    );
+    await Promise.all(missing.map((sample) => repository.save(sample)));
+    return [...guides, ...missing];
   }
 
   async function get(id: string): Promise<Guide> {
-    if (id === SAMPLE_GUIDE_ID) await ensureSample();
-    const guide = await repository.findById(id);
-    if (!guide) throw new AppError(ErrorCode.GUIDE_NOT_FOUND, { detail: id });
-    return guide;
+    const stored = await repository.findById(id);
+    if (stored) return stored;
+    if (!isSampleGuideId(id)) throw new AppError(ErrorCode.GUIDE_NOT_FOUND, { detail: id });
+    const sample = buildSampleGuide(id);
+    await repository.save(sample);
+    return sample;
   }
 
   return {
     get,
 
     async list(): Promise<Guide[]> {
-      await ensureSample();
-      const guides = await repository.findAll();
+      const guides = await withSamples(await repository.findAll());
       return guides.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     },
 

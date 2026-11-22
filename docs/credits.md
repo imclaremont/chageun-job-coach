@@ -44,9 +44,9 @@ README Credits / Licenses 섹션의 원본
 
 ## 직접 만든 데이터
 
-| 명칭             | 내용                                             | 위치                               |
-| ---------------- | ------------------------------------------------ | ---------------------------------- |
-| 기본 가이드      | 가상 매장의 아이스 아메리카노 매뉴얼과 단계 13개 | `src/features/guide/sample.ts`     |
-| 예시 매뉴얼      | 가상 매장의 업무 매뉴얼 2종                      | `src/features/guide/examples.ts`   |
-| 어려운 낱말 목록 | 어려운 낱말과 쉬운 표현 32쌍                     | `src/features/guide/easy-read.ts`  |
-| 가상 근로자      | 시연용 가상 이름 3개                             | `src/features/progress/workers.ts` |
+| 명칭             | 내용                                   | 위치                                                                 |
+| ---------------- | -------------------------------------- | -------------------------------------------------------------------- |
+| 기본 가이드      | 가상 일터 6곳의 업무 매뉴얼과 단계 8종 | `src/features/guide/sample.ts`, `src/features/guide/sample-extra.ts` |
+| 예시 매뉴얼      | 가상 매장의 업무 매뉴얼 2종            | `src/features/guide/examples.ts`                                     |
+| 어려운 낱말 목록 | 어려운 낱말과 쉬운 표현 32쌍           | `src/features/guide/easy-read.ts`                                    |
+| 가상 근로자      | 시연용 가상 이름 3개                   | `src/features/progress/workers.ts`                                   |
