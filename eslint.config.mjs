@@ -4,7 +4,8 @@ import nextTs from "eslint-config-next/typescript";
 
 // 레이어 경계 규칙, 상세 설명은 docs/architecture.md
 const OPENAI_ONLY_IN_INFRA = {
-  group: ["openai", "openai/*"],
+  // 패키지 이름만 대상, @/infra/openai 경로는 제외
+  regex: "^openai(/|$)",
   message: "OpenAI SDK는 src/infra/openai에서만 사용",
 };
 const FEATURE_INTERNALS = {
