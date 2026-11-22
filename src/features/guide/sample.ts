@@ -1,3 +1,4 @@
+import { EXTRA_SAMPLES, type SampleDefinition } from "./sample-extra";
 import type { DraftStep, Guide } from "./schema";
 
 // 처음 접속했을 때 바로 써 볼 수 있는 기본 가이드, 가상 매장의 가상 매뉴얼
@@ -122,17 +123,39 @@ export const SAMPLE_STEPS: DraftStep[] = [
   },
 ];
 
-const SAMPLE_CREATED_AT = "2026-11-22T00:00:00.000Z";
-
-export function buildSampleGuide(): Guide {
-  return {
+// 처음 접속했을 때 보이는 기본 가이드 전체, 첫 번째가 맨 위에 오도록 정렬
+export const SAMPLE_DEFINITIONS: SampleDefinition[] = [
+  {
     id: SAMPLE_GUIDE_ID,
+    stepPrefix: "s_sample",
     title: "아이스 아메리카노 만들기",
     workplace: "카페 차근",
     manual: SAMPLE_MANUAL,
-    steps: SAMPLE_STEPS.map((step, index) => ({
+    steps: SAMPLE_STEPS,
+  },
+  ...EXTRA_SAMPLES,
+];
+
+const SAMPLE_BASE_TIME = Date.UTC(2026, 10, 22);
+const MINUTE_MS = 60_000;
+
+export const isSampleGuideId = (id: string) =>
+  SAMPLE_DEFINITIONS.some((definition) => definition.id === id);
+
+export function buildSampleGuide(id: string = SAMPLE_GUIDE_ID): Guide {
+  const index = SAMPLE_DEFINITIONS.findIndex((definition) => definition.id === id);
+  const definition = SAMPLE_DEFINITIONS[Math.max(index, 0)];
+  // 목록은 최근 수정 순이므로 정의한 순서대로 보이게 시각을 1분씩 앞당김
+  const createdAt = new Date(SAMPLE_BASE_TIME - Math.max(index, 0) * MINUTE_MS).toISOString();
+
+  return {
+    id: definition.id,
+    title: definition.title,
+    workplace: definition.workplace,
+    manual: definition.manual,
+    steps: definition.steps.map((step, stepIndex) => ({
       ...step,
-      id: `s_sample_${index + 1}`,
+      id: `${definition.stepPrefix}_${stepIndex + 1}`,
       issues: [],
       editedByCoach: false,
     })),
@@ -141,8 +164,11 @@ export function buildSampleGuide(): Guide {
     isSample: true,
     maskedCount: 0,
     generation: null,
-    createdAt: SAMPLE_CREATED_AT,
-    updatedAt: SAMPLE_CREATED_AT,
-    approvedAt: SAMPLE_CREATED_AT,
+    createdAt,
+    updatedAt: createdAt,
+    approvedAt: createdAt,
   };
 }
+
+export const buildSampleGuides = (): Guide[] =>
+  SAMPLE_DEFINITIONS.map((definition) => buildSampleGuide(definition.id));

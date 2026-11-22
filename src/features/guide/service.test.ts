@@ -3,7 +3,7 @@ import { createMemoryStore } from "@/infra/store/memory-store";
 import { AppError } from "@/shared/error";
 import type { StructuredGenerator } from "./agent/generate-guide";
 import { createGuideRepository } from "./repository";
-import { SAMPLE_GUIDE_ID } from "./sample";
+import { SAMPLE_DEFINITIONS, SAMPLE_GUIDE_ID } from "./sample";
 import type { DraftGuide, DraftStep, StepInput } from "./schema";
 import { toWorkerGuide } from "./schema";
 import { createGuideService } from "./service";
@@ -160,6 +160,27 @@ describe("guideService", () => {
     const approved = await service.listApproved();
 
     expect(approved.map((guide) => guide.id)).toContain(SAMPLE_GUIDE_ID);
+  });
+
+  it("기본 가이드 전체를 정의한 순서대로 제공", async () => {
+    const { service } = setup({ title: "", steps: [], rejectReason: null });
+
+    const guides = await service.list();
+
+    expect(guides.map((guide) => guide.id)).toEqual(
+      SAMPLE_DEFINITIONS.map((definition) => definition.id),
+    );
+    expect(guides.every((guide) => guide.status === "approved" && guide.isSample)).toBe(true);
+  });
+
+  it("목록을 거치지 않아도 기본 가이드를 바로 조회", async () => {
+    const { service } = setup({ title: "", steps: [], rejectReason: null });
+    const last = SAMPLE_DEFINITIONS.at(-1)!;
+
+    const guide = await service.getApproved(last.id);
+
+    expect(guide.title).toBe(last.title);
+    expect(guide.steps[0].id).toBe(`${last.stepPrefix}_1`);
   });
 
   it("근로자용 응답에서 원문과 점검 결과 제외", async () => {
