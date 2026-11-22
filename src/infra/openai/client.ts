@@ -1,7 +1,7 @@
 import "server-only";
-import OpenAI from "openai";
+import OpenAI, { AzureOpenAI } from "openai";
 import type { z } from "zod";
-import { getEnv } from "@/config/env";
+import { getAiProvider, getEnv } from "@/config/env";
 import { AppError, ErrorCode } from "@/shared/error";
 import { logger } from "@/shared/util/logger";
 import { toStrictJsonSchema } from "./json-schema";
@@ -19,18 +19,35 @@ const REQUEST_TIMEOUT_MS = 50_000;
 
 let client: OpenAI | undefined;
 
+function requireProvider() {
+  const provider = getAiProvider();
+  if (!provider) throw new AppError(ErrorCode.AI_NOT_CONFIGURED);
+  return provider;
+}
+
+// Azure OpenAI와 OpenAI 직접 연결 모두 같은 Chat Completions 호출 사용
 function getClient(): OpenAI {
-  const { OPENAI_API_KEY } = getEnv();
-  if (!OPENAI_API_KEY) throw new AppError(ErrorCode.AI_NOT_CONFIGURED);
-  client ??= new OpenAI({ apiKey: OPENAI_API_KEY, timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 });
+  if (client) return client;
+  const provider = requireProvider();
+  const common = { apiKey: provider.apiKey, timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 };
+  client =
+    provider.kind === "azure"
+      ? new AzureOpenAI({
+          ...common,
+          endpoint: provider.endpoint,
+          apiVersion: provider.apiVersion,
+          deployment: provider.model,
+        })
+      : new OpenAI(common);
   return client;
 }
 
 function baseParams() {
-  const { OPENAI_MODEL, OPENAI_REASONING_EFFORT } = getEnv();
+  const { OPENAI_REASONING_EFFORT, OPENAI_TEMPERATURE } = getEnv();
   return {
-    model: OPENAI_MODEL,
+    model: requireProvider().model,
     ...(OPENAI_REASONING_EFFORT ? { reasoning_effort: OPENAI_REASONING_EFFORT } : {}),
+    ...(OPENAI_TEMPERATURE === undefined ? {} : { temperature: OPENAI_TEMPERATURE }),
   };
 }
 
@@ -42,7 +59,7 @@ function toAppError(error: unknown, operation: string): AppError {
 }
 
 export function getModelName(): string {
-  return getEnv().OPENAI_MODEL;
+  return getAiProvider()?.model ?? getEnv().OPENAI_MODEL;
 }
 
 // 구조화 출력 요청, 응답은 zod 검증 후 반환 (검증 실패 시 1회 재요청)
