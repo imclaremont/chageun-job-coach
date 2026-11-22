@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) 가드: AI 도구 표기, 비밀 파일 열람, 강제 푸시, 보호 브랜치, 비밀 정보 커밋, 마감 이후 동결
+// PreToolUse(Bash) 가드: AI 도구 표기, 비밀 파일 열람, 강제 푸시, 보호 브랜치, 비밀 정보 커밋, 동결 시각 이후 커밋
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { FREEZE_AT, PROJECT_DIR, block, git, isSecretEnvFile, readHookInput } from "./lib.mjs";
@@ -99,12 +99,9 @@ if (isCommit) {
         `${branch} 직접 커밋 금지. develop에서 'type/#이슈번호-description' 브랜치를 만들어 작업`,
       );
     }
-    // 5. 마감 이후 동결
-    if (Date.now() > FREEZE_AT && !/^(hotfix|docs)\//.test(branch)) {
-      block(
-        HOOK,
-        "제출 마감(2026-11-23 17:00 KST) 이후: 기능·알고리즘·프롬프트·데이터 변경 금지. 접속·환경 복구는 hotfix/* 브랜치에서 사유와 함께 처리",
-      );
+    // 5. 동결 시각 이후 커밋 차단
+    if (FREEZE_AT !== null && Date.now() > FREEZE_AT && !/^(hotfix|docs)\//.test(branch)) {
+      block(HOOK, "동결 시각 이후: hotfix/*·docs/* 브랜치에서만 커밋 가능");
     }
   }
 
