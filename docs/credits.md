@@ -35,10 +35,13 @@ README Credits / Licenses 섹션의 원본
 
 ## 이미지·음원·폰트
 
-| 자료명           | 제작자·출처                                                     | 라이선스    | 사용 위치          |
-| ---------------- | --------------------------------------------------------------- | ----------- | ------------------ |
-| 서비스 아이콘    | 직접 제작                                                       | -           | `src/app/icon.svg` |
-| Pretendard 1.3.9 | 길형진 (orioncactus), https://github.com/orioncactus/pretendard | SIL OFL 1.1 | 전체 화면 글꼴     |
+| 자료명                                                                                      | 제작자·출처                                                     | 라이선스                  | 사용 위치                      |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------- | ------------------------------ |
+| 서비스 아이콘                                                                               | 직접 제작                                                       | -                         | `src/app/icon.svg`             |
+| Pretendard 1.3.9                                                                            | 길형진 (orioncactus), https://github.com/orioncactus/pretendard | SIL OFL 1.1               | 전체 화면 글꼴                 |
+| 기술 로고 (Next.js, React, Tailwind CSS, TypeScript, Azure, GitHub, GitHub Actions, Vercel) | devicon, https://github.com/devicons/devicon                    | MIT, 상표권은 각 사       | `docs/images/architecture.png` |
+| Upstash 로고                                                                                | Simple Icons, https://simpleicons.org                           | CC0 1.0, 상표권은 Upstash | `docs/images/architecture.png` |
+| 아키텍처 그림                                                                               | 직접 제작                                                       | -                         | `docs/images/architecture.png` |
 
 - 글꼴: Pretendard를 패키지로 설치해 함께 배포, 불러오지 못하면 기기 설치 글꼴 사용
 
