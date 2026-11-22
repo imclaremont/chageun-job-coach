@@ -9,7 +9,7 @@ import {
   splitSentences,
 } from "./easy-read";
 import { EXAMPLE_MANUALS } from "./examples";
-import { SAMPLE_MANUAL, SAMPLE_STEPS } from "./sample";
+import { SAMPLE_DEFINITIONS } from "./sample";
 import type { DraftStep } from "./schema";
 
 const MANUAL = "컵에 얼음을 가득 채운다. 포터필터가 뜨거우니 손잡이만 잡는다.";
@@ -204,19 +204,26 @@ describe("설명의 원문 근거", () => {
 });
 
 describe("기본 제공 데이터", () => {
-  it("기본 가이드에 원문 누락 없음", () => {
-    expect(findUncoveredClauses(SAMPLE_MANUAL, SAMPLE_STEPS)).toEqual([]);
+  it.each(SAMPLE_DEFINITIONS)("기본 가이드에 원문 누락 없음: $title", ({ manual, steps }) => {
+    expect(findUncoveredClauses(manual, steps)).toEqual([]);
   });
 
-  it("기본 가이드에 설명 반복 없음", () => {
-    expect(checkSteps(SAMPLE_STEPS, SAMPLE_MANUAL).flat()).toEqual([]);
-  });
+  it.each(SAMPLE_DEFINITIONS)(
+    "기본 가이드의 모든 단계가 점검 통과: $title",
+    ({ manual, steps }) => {
+      const problems = checkSteps(steps, manual).flatMap((issues, index) =>
+        issues.map((issue) => `${index + 1}. ${steps[index].action}: ${issue.message}`),
+      );
+      expect(problems).toEqual([]);
+    },
+  );
 
-  it("기본 가이드의 모든 단계가 점검 통과", () => {
-    const problems = SAMPLE_STEPS.flatMap((sample) =>
-      checkStep(sample, SAMPLE_MANUAL).map((issue) => `${sample.action}: ${issue.message}`),
-    );
-    expect(problems).toEqual([]);
+  it("기본 가이드의 식별자는 서로 다름", () => {
+    const ids = SAMPLE_DEFINITIONS.map((definition) => definition.id);
+    const prefixes = SAMPLE_DEFINITIONS.map((definition) => definition.stepPrefix);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(prefixes).size).toBe(prefixes.length);
   });
 
   it("예시 매뉴얼은 입력 길이 기준 충족", () => {
