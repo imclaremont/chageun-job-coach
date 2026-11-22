@@ -9,8 +9,8 @@ const OPENAI_ONLY_IN_INFRA = {
   message: "OpenAI SDK는 src/infra/openai에서만 사용",
 };
 const FEATURE_INTERNALS = {
-  group: ["@/features/*/*", "!@/features/*/server"],
-  message: "다른 기능은 @/features/{기능명} 또는 @/features/{기능명}/server 진입점으로만 참조",
+  group: ["@/features/*/*", "!@/features/*/server", "!@/features/*/components"],
+  message: "다른 기능은 @/features/{기능명}, /server, /components 진입점으로만 참조",
 };
 const SERVER_ONLY_MODULES = {
   group: [
@@ -69,11 +69,19 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // 테스트는 다른 기능의 내부 모듈을 직접 조립해 검증
+    files: ["src/**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": restrict(OPENAI_ONLY_IN_INFRA),
+    },
+  },
+  {
     files: ["src/shared/util/logger.ts"],
     rules: { "no-console": "off" },
   },
   globalIgnores([
     ".next/**",
+    "**/*.nosync/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
