@@ -35,6 +35,9 @@ CLAUDE.local.md
 # iCloud 동기화 제외용 폴더 (원래 이름은 이 폴더를 가리키는 링크)
 *.nosync
 
+# iCloud 동기화 충돌 사본 (이름 뒤에 숫자가 붙은 중복 파일)
+* [2-9].*
+
 # OS·에디터
 .DS_Store
 *.pem
