@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Play, Star } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Play, Star } from "lucide-react";
 import { useState } from "react";
 import type { WorkerGuideResponse } from "@/features/guide";
 import { Button, LinkButton } from "@/shared/ui/button";
@@ -12,6 +12,9 @@ import { RunSession } from "./run-session";
 import { useCurrentWorker } from "./worker-store";
 
 type Session = { run: RunResponse; guide: WorkerGuideResponse };
+
+// 미리 보여 줄 단계 그림 수
+const PREVIEW_COUNT = 5;
 
 // 일 시작 전 화면: 할 일 확인 → 시작, 익숙해지면 짧게 보기 제안
 export function WorkRunner({ guideId }: { guideId: string }) {
@@ -29,8 +32,8 @@ export function WorkRunner({ guideId }: { guideId: string }) {
 
   if (worker === null) {
     return (
-      <section className="flex flex-col gap-6">
-        <h1 className="text-4xl font-bold leading-snug">먼저 이름을 골라요</h1>
+      <section className="flex animate-rise flex-col gap-6">
+        <h1 className="text-4xl leading-snug font-extrabold">먼저 이름을 골라요</h1>
         <LinkButton href="/work" size="xl">
           이름 고르러 가기
         </LinkButton>
@@ -55,6 +58,8 @@ export function WorkRunner({ guideId }: { guideId: string }) {
   const guide = guideQuery.data;
   const simpleRecommended = recommendation.data?.simpleRecommended ?? false;
   const workerId = worker.id;
+  const preview = guide.steps.slice(0, PREVIEW_COUNT);
+  const hiddenCount = guide.steps.length - preview.length;
 
   async function start(mode: Run["mode"]) {
     setStarting(true);
@@ -68,25 +73,47 @@ export function WorkRunner({ guideId }: { guideId: string }) {
   }
 
   return (
-    <section className="flex flex-1 flex-col gap-8">
+    <section className="flex flex-1 animate-rise flex-col gap-8">
       <div className="flex flex-col gap-4">
-        <p className="text-2xl text-stone-700">{worker.name} 님이 할 일</p>
-        <h1 className="text-5xl font-bold leading-snug">{guide.title}</h1>
-        <p className="text-2xl text-stone-700">
-          모두 {guide.steps.length}단계예요. 한 단계씩 같이 해요.
+        <p className="self-start rounded-full bg-brand-100 px-4 py-1.5 text-xl font-bold text-brand-800">
+          {worker.name} 님이 할 일
+        </p>
+        <h1 className="text-5xl leading-tight font-extrabold">{guide.title}</h1>
+        <p className="text-2xl leading-relaxed text-stone-700">
+          모두 {guide.steps.length}단계예요.
+          <br />한 단계씩 같이 해요.
         </p>
       </div>
 
+      <div aria-hidden className="flex items-center gap-2.5">
+        {preview.map((step, index) => (
+          <span
+            key={step.id}
+            className="flex size-14 animate-pop items-center justify-center rounded-2xl bg-white text-3xl shadow-card ring-1 ring-stone-900/5"
+            style={{ animationDelay: `${index * 60}ms` }}
+          >
+            {step.emoji}
+          </span>
+        ))}
+        {hiddenCount > 0 && (
+          <span className="text-xl font-bold text-stone-600">+{hiddenCount}</span>
+        )}
+      </div>
+
       {error && (
-        <p role="alert" className="rounded-2xl bg-red-50 p-4 text-xl text-red-800">
+        <p
+          role="alert"
+          className="rounded-2xl bg-red-50 p-4 text-xl text-red-900 ring-1 ring-red-200"
+        >
           {error}
         </p>
       )}
 
       {simpleRecommended ? (
-        <div className="flex flex-col gap-4 rounded-3xl bg-amber-100 p-6">
-          <p className="flex items-center gap-3 text-2xl font-bold text-amber-950">
-            <Star aria-hidden className="size-8 shrink-0" />이 일을 잘하게 됐어요!
+        <div className="flex flex-col gap-4 rounded-[1.75rem] bg-amber-100 p-6 ring-1 ring-amber-300/70">
+          <p className="flex items-center gap-3 text-2xl font-extrabold text-amber-950">
+            <Star aria-hidden className="size-8 shrink-0 fill-amber-400 text-amber-600" />이 일을
+            잘하게 됐어요!
           </p>
           <p className="text-2xl text-amber-950">설명을 짧게 볼까요?</p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -103,13 +130,14 @@ export function WorkRunner({ guideId }: { guideId: string }) {
           {starting ? (
             <LoaderCircle aria-hidden className="size-8 animate-spin" />
           ) : (
-            <Play aria-hidden className="size-8" />
+            <Play aria-hidden className="size-8 fill-current" />
           )}
           시작해요
         </Button>
       )}
 
       <LinkButton href="/work" variant="ghost" size="lg" className="self-start">
+        <ArrowLeft aria-hidden className="size-6" />
         다른 일 고르기
       </LinkButton>
     </section>
