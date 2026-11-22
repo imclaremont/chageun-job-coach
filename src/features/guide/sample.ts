@@ -136,6 +136,7 @@ export function buildSampleGuide(): Guide {
       issues: [],
       editedByCoach: false,
     })),
+    uncovered: [],
     status: "approved",
     isSample: true,
     maskedCount: 0,

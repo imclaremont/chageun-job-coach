@@ -95,6 +95,15 @@ describe("runCoachingAgent", () => {
     expect(reply.source).toBe("ai");
   });
 
+  it("사람을 부른다고 답하면서 호출 도구를 쓰지 않으면 코드가 대신 호출", async () => {
+    const { chat } = scriptedChat([answer("잘 모르겠어요. 선생님을 부를게요.")]);
+
+    const reply = await runCoachingAgent(input, chat);
+
+    expect(reply.trace).toEqual([TOOL.ANSWER]);
+    expect(reply.coachCalled).toBe(true);
+  });
+
   it("원문에 없는 낱말을 찾으면 지어내지 말라는 안내를 전달", async () => {
     const { chat, seen } = scriptedChat([
       { name: TOOL.SEARCH_MANUAL, args: { keyword: "시럽" } },

@@ -4,9 +4,11 @@ import { createId } from "@/shared/util/id";
 import { logger } from "@/shared/util/logger";
 import { maskPersonalInfo } from "@/shared/util/mask";
 import { generateGuide, type StructuredGenerator } from "./agent/generate-guide";
-import { checkStep } from "./easy-read";
+import { findUncoveredClauses } from "./coverage";
+import { checkSteps } from "./easy-read";
 import type { GuideRepository } from "./repository";
 import { buildSampleGuide, SAMPLE_GUIDE_ID } from "./sample";
+import { countIssues } from "./schema";
 import type {
   ApproveGuideRequest,
   CreateGuideRequest,
@@ -29,8 +31,6 @@ const DRAFT_FIELDS = ["action", "detail", "emoji", "caution", "doneCheck", "sour
 
 const sameContent = (a: DraftStep, b: DraftStep) =>
   DRAFT_FIELDS.every((field) => (a[field] ?? "") === (b[field] ?? ""));
-
-const countIssues = (steps: Step[]) => steps.reduce((total, step) => total + step.issues.length, 0);
 
 export function createGuideService({ repository, generate, modelName, now }: Dependencies) {
   const timestamp = () => (now?.() ?? new Date()).toISOString();
@@ -91,6 +91,7 @@ export function createGuideService({ repository, generate, modelName, now }: Dep
           issues: result.issuesByStep[index] ?? [],
           editedByCoach: false,
         })),
+        uncovered: result.uncovered,
         status: "draft",
         isSample: false,
         maskedCount,
@@ -119,20 +120,23 @@ export function createGuideService({ repository, generate, modelName, now }: Dep
       const guide = await get(id);
       const existing = new Map(guide.steps.map((step) => [step.id, step]));
 
-      const steps: Step[] = request.steps.map((input) => {
-        const previous = input.id ? existing.get(input.id) : undefined;
-        const draft: DraftStep = {
-          action: input.action,
-          detail: input.detail,
-          emoji: input.emoji,
-          caution: input.caution || null,
-          doneCheck: input.doneCheck,
-          sourceQuote: input.sourceQuote,
-        };
+      const drafts: DraftStep[] = request.steps.map((input) => ({
+        action: input.action,
+        detail: input.detail,
+        emoji: input.emoji,
+        caution: input.caution || null,
+        doneCheck: input.doneCheck,
+        sourceQuote: input.sourceQuote,
+      }));
+      const issuesByStep = checkSteps(drafts, guide.manual);
+
+      const steps: Step[] = drafts.map((draft, index) => {
+        const inputId = request.steps[index].id;
+        const previous = inputId ? existing.get(inputId) : undefined;
         return {
           ...draft,
           id: previous?.id ?? createId("s"),
-          issues: checkStep(draft, guide.manual),
+          issues: issuesByStep[index],
           editedByCoach: previous ? previous.editedByCoach || !sameContent(previous, draft) : true,
         };
       });
@@ -141,6 +145,7 @@ export function createGuideService({ repository, generate, modelName, now }: Dep
         ...guide,
         title: request.title,
         steps,
+        uncovered: findUncoveredClauses(guide.manual, steps),
         status: "draft",
         approvedAt: null,
         updatedAt: timestamp(),
@@ -151,7 +156,7 @@ export function createGuideService({ repository, generate, modelName, now }: Dep
 
     async approve(id: string, request: ApproveGuideRequest): Promise<Guide> {
       const guide = await get(id);
-      if (countIssues(guide.steps) > 0 && !request.acknowledgeIssues) {
+      if (countIssues(guide) > 0 && !request.acknowledgeIssues) {
         throw new AppError(ErrorCode.GUIDE_HAS_ISSUES, { detail: id });
       }
       const approvedAt = timestamp();

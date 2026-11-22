@@ -12,6 +12,8 @@ export const TOOL = {
 } as const;
 
 export const ANSWER_MAX_SENTENCES = 3;
+// 답변이 사람을 부른다고 말하는지 판별
+const SAYS_CALLING_COACH = /(선생님|코치|매니저|담당자)[^.!?]*(부를|불렀|불러|부르)/;
 // 답변 점검 실패를 허용하는 횟수, 넘으면 승인된 단계 내용으로 대체
 export const ANSWER_MAX_REJECTS = 2;
 
@@ -160,6 +162,10 @@ export function runTool(
       if (problems.length > 0) {
         state.answerRejects += 1;
         return failure(problems);
+      }
+      // 사람을 부른다고 답하면서 호출 도구를 쓰지 않은 경우 코드가 대신 호출
+      if (!state.coachReason && SAYS_CALLING_COACH.test(message)) {
+        state.coachReason = "답변에서 사람 호출을 안내";
       }
       state.answer = { message, encouragement: args.data.encouragement.trim() };
       return { ok: true };

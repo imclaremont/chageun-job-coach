@@ -198,6 +198,20 @@ function ReviewEditor({
         {guide.maskedCount > 0 && (
           <p>개인정보로 보이는 값 {guide.maskedCount}개를 가린 뒤 AI에 보냈어요.</p>
         )}
+        {guide.uncovered.length > 0 && (
+          <div className="flex flex-col gap-1.5 rounded-xl bg-amber-50 p-3 text-amber-900">
+            <p className="flex items-center gap-2 font-semibold">
+              <TriangleAlert aria-hidden className="size-5 shrink-0" />
+              원문에 있는데 단계에서 찾지 못한 내용이에요. 일부러 뺀 것이 아니라면 단계에 넣어
+              주세요.
+            </p>
+            <ul className="list-disc pl-9">
+              {guide.uncovered.map((clause) => (
+                <li key={clause}>{clause}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         {guide.issueCount > 0 ? (
           <p className="flex items-center gap-2 font-semibold text-amber-900">
             <TriangleAlert aria-hidden className="size-5" />
