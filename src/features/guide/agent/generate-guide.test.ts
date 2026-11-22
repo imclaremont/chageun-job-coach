@@ -37,7 +37,7 @@ function fakeGenerator(responses: DraftGuide[]) {
 
 describe("generateGuide", () => {
   it("문제 없는 초안은 한 번의 호출로 종료", async () => {
-    const { generate, prompts } = fakeGenerator([draft([cleanStep])]);
+    const { generate, prompts } = fakeGenerator([draft([cleanStep, lidStep])]);
 
     const result = await generateGuide({ manual: MANUAL }, generate);
 
@@ -80,6 +80,25 @@ describe("generateGuide", () => {
     expect(result.steps[0].sourceQuote).toBe("뚜껑을 닫고 빨대를 꽂는다");
   });
 
+  it("그림 기호 자리에 글자가 오면 기본 기호로 교체, 할 일과 같은 설명은 비움", async () => {
+    const messy: DraftStep = { ...cleanStep, emoji: "ice cube", detail: "컵에 얼음을 채워요." };
+    const { generate, prompts } = fakeGenerator([draft([messy, lidStep])]);
+
+    const result = await generateGuide({ manual: MANUAL }, generate);
+
+    expect(prompts).toHaveLength(1);
+    expect(result.steps[0]).toMatchObject({ emoji: "▶️", detail: "" });
+  });
+
+  it("그림 기호에 글자가 섞여 오면 기호만 남김", async () => {
+    const mixed: DraftStep = { ...cleanStep, emoji: "spray:🧴" };
+    const { generate } = fakeGenerator([draft([mixed, lidStep])]);
+
+    const result = await generateGuide({ manual: MANUAL }, generate);
+
+    expect(result.steps[0].emoji).toBe("🧴");
+  });
+
   it("업무 매뉴얼이 아니면 거절 사유 반환", async () => {
     const { generate, prompts } = fakeGenerator([draft([], "업무 순서가 없는 글")]);
 
@@ -90,8 +109,28 @@ describe("generateGuide", () => {
     expect(result.steps).toEqual([]);
   });
 
+  it("원문 내용을 빠뜨리면 누락 내용을 알려 주며 재작성 요청", async () => {
+    const manual = "컵에 얼음을 가득 채운다. 손님에게 5분 안에 건넨다.";
+    const serveStep: DraftStep = {
+      ...cleanStep,
+      action: "손님에게 건네요",
+      detail: "5분 안에 건네요.",
+      sourceQuote: "손님에게 5분 안에 건넨다",
+    };
+    const { generate, prompts } = fakeGenerator([
+      draft([cleanStep]),
+      draft([cleanStep, serveStep]),
+    ]);
+
+    const result = await generateGuide({ manual }, generate);
+
+    expect(prompts[1]).toContain('원문 내용 누락: "손님에게 5분 안에 건넨다"');
+    expect(result.uncovered).toEqual([]);
+    expect(result.issuesRemaining).toBe(0);
+  });
+
   it("매뉴얼을 데이터 영역으로 감싸 전달", async () => {
-    const { generate, prompts } = fakeGenerator([draft([cleanStep])]);
+    const { generate, prompts } = fakeGenerator([draft([cleanStep, lidStep])]);
 
     await generateGuide({ manual: MANUAL }, generate);
 
