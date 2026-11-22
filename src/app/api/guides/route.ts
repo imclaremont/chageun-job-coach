@@ -2,8 +2,8 @@ import { CreateGuideRequest, toGuideResponse, toGuideSummary } from "@/features/
 import { guideService } from "@/features/guide/server";
 import { ok, SuccessCode, withApiHandler } from "@/shared/api";
 
-// AI 생성과 재작성 시간 확보
-export const maxDuration = 120;
+// AI 생성과 재작성 시간 확보, 배포 환경 제한에 맞춤
+export const maxDuration = 60;
 
 // 가이드 목록, view=worker이면 승인된 가이드만
 export const GET = withApiHandler(async (request) => {

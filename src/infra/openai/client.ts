@@ -15,7 +15,7 @@ export type ToolDefinition = {
   parameters: z.ZodType;
 };
 
-const REQUEST_TIMEOUT_MS = 50_000;
+const REQUEST_TIMEOUT_MS = 25_000;
 
 let client: OpenAI | undefined;
 
