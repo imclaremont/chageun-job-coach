@@ -1,0 +1,15 @@
+node_modules
+.next
+*.nosync
+out
+build
+coverage
+package-lock.json
+next-env.d.ts
+public
+planning
+submission
+.data
+
+# next dev가 관리하는 블록이 들어 있어 수동 형식 유지
+AGENTS.md
