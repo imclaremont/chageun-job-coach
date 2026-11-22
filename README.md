@@ -18,7 +18,7 @@
 
 ```bash
 npm install
-cp .env.example .env.local   # OPENAI_API_KEY 입력
+cp .env.example .env.local   # Azure OpenAI 또는 OpenAI 값 입력
 npm run dev
 ```
 
