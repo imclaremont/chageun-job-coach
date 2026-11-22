@@ -88,6 +88,9 @@ function TaskList({ workerName, workerEmoji }: { workerName: string; workerEmoji
                 <ListChecks className="size-9 sm:size-10" />
               </span>
               <span className="flex flex-1 flex-col gap-1">
+                {guide.workplace && (
+                  <span className="text-xl font-bold text-brand-700">{guide.workplace}</span>
+                )}
                 <span className="text-2xl leading-snug font-extrabold sm:text-3xl">
                   {guide.title}
                 </span>
