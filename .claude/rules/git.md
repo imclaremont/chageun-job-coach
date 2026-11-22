@@ -2,14 +2,14 @@
 
 ## 브랜치
 
-- `main`: 제출·배포본, `develop`: 통합 브랜치
+- `main`: 배포본, `develop`: 통합 브랜치
 - 작업 브랜치 형식: `type/#이슈번호-description`
   - 예시: `feat/#5-manual-to-steps`, `chore/#1-agent-harness`
   - `type`: `feat`, `fix`, `refactor`, `docs`, `chore`, `test` 중 하나
   - `description`: 영어 kebab-case
   - zsh의 `#` 주석 처리 방지를 위해 브랜치명은 따옴표로 감싸기
 - 작업 브랜치는 항상 `develop`에서 분기
-- 마감(2026-11-23 17:00 KST) 이후: `hotfix/#이슈번호-description`만 사용, 접속·인증정보·실행 환경 복구 외 변경 금지
+- 배포본 긴급 수정: `main`에서 `hotfix/#이슈번호-description` 분기
 
 ## 커밋
 
@@ -23,7 +23,7 @@
 
 - 작업 브랜치 → `develop`: Merge commit (작업 PR 단위 히스토리 보존)
 - `develop` → `main`: Squash merge (릴리즈 단위 1커밋)
-- 릴리즈 후 `main`에 `v{major}.{minor}.{patch}` 태그 (제출 시점 버전 식별용)
+- 릴리즈 후 `main`에 `v{major}.{minor}.{patch}` 태그 (배포 버전 식별용)
 - 강제 푸시 금지, 히스토리 수정이 필요하면 사용자 승인 후 `FORCE_PUSH_APPROVED=1` 접두로 실행
 
 ## 이슈·PR

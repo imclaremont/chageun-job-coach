@@ -36,7 +36,7 @@ npm run dev
 
 ## 브랜치
 
-- `main`: 제출·배포본
+- `main`: 배포본
 - `develop`: 통합 브랜치
 - 작업 브랜치: `develop`에서 분기 (`type/#이슈번호-description`)
 
