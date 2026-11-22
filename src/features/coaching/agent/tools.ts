@@ -30,6 +30,7 @@ const SplitInput = z.object({
 });
 const CallCoachInput = z.object({
   reason: z.string().describe("코치에게 전할 호출 이유"),
+  urgent: z.boolean().describe("근로자가 다쳤거나 아프다고 하면 true, 그 밖에는 false"),
 });
 const AnswerInput = z.object({
   message: z.string().describe("근로자에게 할 말, 쉬운 말 3문장 이하"),
@@ -67,6 +68,7 @@ export const TOOL_SPECS = [
 export type ToolState = {
   smallSteps: string[];
   coachReason: string | null;
+  coachUrgent: boolean;
   answer: { message: string; encouragement: string } | null;
   answerRejects: number;
 };
@@ -74,6 +76,7 @@ export type ToolState = {
 export const createToolState = (): ToolState => ({
   smallSteps: [],
   coachReason: null,
+  coachUrgent: false,
   answer: null,
   answerRejects: 0,
 });
@@ -141,8 +144,10 @@ export function runTool(
     }
 
     case TOOL.CALL_COACH: {
-      const args = CallCoachInput.safeParse(rawArgs);
-      state.coachReason = (args.success && args.data.reason.trim()) || "근로자 도움 요청";
+      // 긴급 여부가 빠져도 호출 자체는 진행
+      const args = CallCoachInput.partial().safeParse(rawArgs);
+      state.coachReason = (args.success && args.data.reason?.trim()) || "근로자 도움 요청";
+      state.coachUrgent ||= args.success && args.data.urgent === true;
       return { ok: true, note: "코치에게 알림 완료, 근로자에게 선생님을 불렀다고 말해 주기" };
     }
 

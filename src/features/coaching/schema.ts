@@ -10,8 +10,10 @@ export const CoachingReplySchema = z.object({
   encouragement: z.string(),
   // 사람(코치) 호출 여부
   coachCalled: z.boolean(),
-  // ai: AI 답변, fallback: AI 실패 시 승인된 단계 내용으로 대체
-  source: z.enum(["ai", "fallback"]),
+  // 다쳤거나 아파서 부른 긴급 호출 여부
+  urgent: z.boolean(),
+  // ai: AI 답변, fallback: AI 실패 시 승인된 단계 내용으로 대체, rule: 코드 규칙의 고정 답변
+  source: z.enum(["ai", "fallback", "rule"]),
   // AI가 쓴 도구 순서
   trace: z.array(z.string()),
 });
@@ -24,6 +26,8 @@ export const AskHelpRequest = z.object({
 });
 export const CallCoachRequest = z.object({
   stepId: z.string().min(1),
+  // help: '선생님 부르기', hurt: '다쳤어요'
+  reason: z.enum(["help", "hurt"]).default("help"),
 });
 export type AskHelpRequest = z.infer<typeof AskHelpRequest>;
 export type CallCoachRequest = z.infer<typeof CallCoachRequest>;

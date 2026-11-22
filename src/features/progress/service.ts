@@ -116,6 +116,7 @@ export function createProgressService({ repository, getApprovedGuide, now }: Dep
 
     async recordHelp(
       input: Pick<HelpRequest, "kind" | "question" | "answer" | "reason" | "trace"> & {
+        urgent?: boolean;
         run: Run;
         stepId: string;
         stepNumber: number;
@@ -136,6 +137,7 @@ export function createProgressService({ repository, getApprovedGuide, now }: Dep
         question: input.question,
         answer: input.answer,
         reason: input.reason,
+        urgent: input.urgent ?? false,
         trace: input.trace,
         // AI 코칭 기록은 바로 종료 상태, 사람 호출은 코치 확인 전까지 열림
         status: input.kind === "human" ? "open" : "resolved",
@@ -166,9 +168,10 @@ export function createProgressService({ repository, getApprovedGuide, now }: Dep
         )
         .sort(byNewest);
       const doneRuns = runs.filter((run) => run.status === "done").sort(byNewest);
+      // 긴급 호출 먼저, 그다음 최신순
       const openHelp = helps
         .filter((help) => help.kind === "human" && help.status === "open")
-        .sort(byNewest);
+        .sort((a, b) => Number(b.urgent) - Number(a.urgent) || byNewest(a, b));
       const aiHelps = helps.filter((help) => help.kind === "ai").sort(byNewest);
 
       // 단계별 AI 도움 횟수 집계, 자주 막히는 단계 파악용
