@@ -1,6 +1,15 @@
 "use client";
 
-import { Bandage, Check, CircleHelp, PartyPopper, TriangleAlert, Volume2, X } from "lucide-react";
+import {
+  Bandage,
+  Check,
+  CircleHelp,
+  House,
+  ListPlus,
+  TriangleAlert,
+  Volume2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { CoachingResponse } from "@/features/coaching";
@@ -19,7 +28,47 @@ import type { RunResponse } from "../schema";
 type Props = { initialRun: RunResponse; guide: WorkerGuideResponse };
 
 // 좁은 화면에서도 글자가 한 줄에 들어가도록 아이콘을 위에 배치
-const STACKED_BUTTON = "flex-col gap-1 py-3 whitespace-nowrap max-sm:text-xl";
+const STACKED_BUTTON = "flex-col gap-1 px-3 py-3 whitespace-nowrap max-sm:text-xl";
+// 단계 수가 이보다 많으면 칸 대신 이어진 막대로 표시
+const SEGMENT_LIMIT = 16;
+
+// 진행 정도: 끝낸 단계는 진하게, 지금 단계는 연하게
+function ProgressTrack({ index, total }: { index: number; total: number }) {
+  return (
+    <div
+      role="progressbar"
+      aria-label="진행 정도"
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-valuenow={index}
+      className="flex-1"
+    >
+      {total <= SEGMENT_LIMIT ? (
+        <div className="flex gap-1">
+          {Array.from({ length: total }, (_, position) => (
+            <span
+              key={position}
+              className={`h-3 flex-1 rounded-full transition-colors duration-300 ${
+                position < index
+                  ? "bg-brand-600"
+                  : position === index
+                    ? "bg-brand-300"
+                    : "bg-stone-300/70"
+              }`}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="h-3 overflow-hidden rounded-full bg-stone-300/70">
+          <div
+            className="h-full rounded-full bg-brand-600 transition-[width] duration-300"
+            style={{ width: `${(index / total) * 100}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // 단계 수행 화면: 한 화면에 한 단계, 아래 고정 버튼은 '다쳤어요'와 주요 버튼 두 개
 export function RunSession({ initialRun, guide }: Props) {
@@ -39,14 +88,21 @@ export function RunSession({ initialRun, guide }: Props) {
   if (run.status === "done") {
     return (
       <section className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
-        <PartyPopper aria-hidden className="size-24 text-teal-700" />
-        <h1 className="text-5xl font-bold leading-snug">다 했어요!</h1>
+        <div className="relative flex size-40 items-center justify-center">
+          <span aria-hidden className="absolute inset-0 rounded-full bg-brand-100" />
+          <span aria-hidden className="absolute inset-5 animate-pop rounded-full bg-brand-700" />
+          <Check aria-hidden strokeWidth={3} className="relative size-16 animate-pop text-white" />
+        </div>
+        <h1 className="text-5xl leading-snug font-extrabold">다 했어요!</h1>
         <p className="text-2xl leading-relaxed text-stone-700">
           {guide.title}
           <br />
-          {total}단계를 모두 끝냈어요. 정말 잘했어요.
+          {total}단계를 모두 끝냈어요.
+          <br />
+          정말 잘했어요.
         </p>
         <LinkButton href="/work" size="xl" className="w-full max-w-md">
+          <House aria-hidden className="size-8" />
           처음으로
         </LinkButton>
       </section>
@@ -63,6 +119,7 @@ export function RunSession({ initialRun, guide }: Props) {
       setHelp(null);
       setCoachCalled(false);
       setShowDetail(run.mode === "full");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
@@ -130,75 +187,81 @@ export function RunSession({ initialRun, guide }: Props) {
     );
 
   return (
-    <div className="flex flex-1 flex-col gap-6 pb-56">
+    <div className="flex flex-1 flex-col gap-5 pb-60">
       <div className="flex items-center gap-4">
-        <div
-          role="progressbar"
-          aria-label="진행 정도"
-          aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={index}
-          className="h-4 flex-1 overflow-hidden rounded-full bg-stone-200"
-        >
-          <div
-            className="h-full rounded-full bg-teal-600 transition-[width]"
-            style={{ width: `${(index / total) * 100}%` }}
-          />
-        </div>
-        <span className="text-2xl font-bold tabular-nums">
-          {number} / {total}
+        <span className="text-2xl font-extrabold tabular-nums">
+          {number}
+          <span className="font-bold text-stone-600"> / {total}</span>
         </span>
+        <ProgressTrack index={index} total={total} />
         <Link
           href="/work"
           aria-label="그만하기"
-          className="flex size-12 items-center justify-center rounded-full text-stone-600 hover:bg-stone-200"
+          className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-stone-700 shadow-card ring-1 ring-stone-900/5 transition-colors hover:bg-stone-100"
         >
-          <X aria-hidden className="size-7" />
+          <X aria-hidden className="size-6" />
         </Link>
       </div>
 
-      <article className="flex flex-col gap-5 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-stone-200 sm:p-8">
-        <p className="text-xl font-semibold text-teal-800">지금 할 일</p>
-        <div className="flex items-center gap-5">
-          <span aria-hidden className="text-7xl leading-none">
+      <article
+        key={step.id}
+        className="flex animate-rise flex-col gap-5 rounded-[2rem] bg-white p-6 shadow-card ring-1 ring-stone-900/5 sm:p-8"
+      >
+        <div className="flex items-center gap-4">
+          <span
+            aria-hidden
+            className="flex size-24 shrink-0 items-center justify-center rounded-[1.75rem] bg-brand-50 text-6xl leading-none"
+          >
             {step.emoji}
           </span>
-          <h1 className="text-4xl font-bold leading-snug">{step.action}</h1>
+          <p className="text-xl font-bold text-brand-700">지금 할 일</p>
         </div>
+
+        <h1 className="text-4xl leading-snug font-extrabold">{step.action}</h1>
 
         {showDetail && step.detail && (
           <p className="text-2xl leading-relaxed text-stone-800">{step.detail}</p>
         )}
 
         {step.caution && (
-          <p className="flex items-start gap-3 rounded-2xl bg-amber-100 p-4 text-2xl font-semibold leading-relaxed text-amber-950">
-            <TriangleAlert aria-hidden className="mt-1 size-8 shrink-0" />
-            <span>
-              <span className="sr-only">조심해요. </span>
-              {step.caution}
-            </span>
-          </p>
+          <div className="flex flex-col gap-1 rounded-3xl bg-amber-100 p-5 ring-1 ring-amber-300/70">
+            <p className="flex items-center gap-2 text-xl font-extrabold text-amber-900">
+              <TriangleAlert aria-hidden className="size-7 shrink-0" />
+              조심해요
+            </p>
+            <p className="text-2xl leading-relaxed font-semibold text-amber-950">{step.caution}</p>
+          </div>
         )}
 
         {showDetail && step.doneCheck && (
-          <p className="flex flex-col gap-1 rounded-2xl bg-stone-100 p-4 text-xl text-stone-800">
-            <span className="text-base font-semibold text-stone-600">이렇게 되면 끝이에요</span>
-            <span className="flex items-center gap-2">
-              <Check aria-hidden className="size-6 shrink-0 text-teal-700" />
+          <div className="flex flex-col gap-1 rounded-3xl bg-stone-100 p-5">
+            <p className="text-xl font-bold text-stone-600">이렇게 되면 끝이에요</p>
+            <p className="flex items-start gap-2.5 text-2xl leading-relaxed text-stone-900">
+              <Check
+                aria-hidden
+                strokeWidth={3}
+                className="mt-1.5 size-6 shrink-0 text-brand-600"
+              />
               {step.doneCheck}
-            </span>
-          </p>
+            </p>
+          </div>
         )}
 
         <div className="flex flex-wrap gap-3">
           {canSpeak() && (
-            <Button variant="secondary" size="lg" onClick={readAloud}>
+            <Button variant="secondary" size="lg" className="text-xl" onClick={readAloud}>
               <Volume2 aria-hidden className="size-7" />
               읽어 주기
             </Button>
           )}
           {!showDetail && step.detail && (
-            <Button variant="secondary" size="lg" onClick={() => setShowDetail(true)}>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="text-xl"
+              onClick={() => setShowDetail(true)}
+            >
+              <ListPlus aria-hidden className="size-7" />
               자세히 보기
             </Button>
           )}
@@ -216,18 +279,21 @@ export function RunSession({ initialRun, guide }: Props) {
       )}
 
       {error && (
-        <p role="alert" className="rounded-2xl bg-red-50 p-4 text-xl text-red-800">
+        <p
+          role="alert"
+          className="rounded-2xl bg-red-50 p-4 text-xl text-red-900 ring-1 ring-red-200"
+        >
           {error}
         </p>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-stone-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 py-4">
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-stone-900/10 bg-paper/90 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2.5 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
           <Button variant="danger" size="lg" className="text-xl" onClick={reportHurt}>
             <Bandage aria-hidden className="size-7" />
             다쳤어요
           </Button>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <Button
               variant="secondary"
               size="xl"
@@ -239,7 +305,7 @@ export function RunSession({ initialRun, guide }: Props) {
               <span>잘 모르겠어요</span>
             </Button>
             <Button size="xl" className={STACKED_BUTTON} disabled={saving} onClick={complete}>
-              <Check aria-hidden className="size-8" />
+              <Check aria-hidden strokeWidth={3} className="size-8" />
               <span>다 했어요</span>
             </Button>
           </div>

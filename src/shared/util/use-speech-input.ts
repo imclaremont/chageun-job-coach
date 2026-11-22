@@ -58,6 +58,8 @@ export function useSpeechInput(onResult: (text: string) => void) {
   const [error, setError] = useState<SpeechInputError | null>(null);
   const recognitionRef = useRef<Recognition | null>(null);
   const onResultRef = useRef(onResult);
+  // 사용자가 직접 멈췄는지 여부
+  const stoppedRef = useRef(false);
 
   useEffect(() => {
     onResultRef.current = onResult;
@@ -84,17 +86,27 @@ export function useSpeechInput(onResult: (text: string) => void) {
     recognition.lang = "ko-KR";
     recognition.interimResults = false;
     recognition.continuous = false;
+    // 결과나 오류로 마무리됐는지 여부
+    let settled = false;
     recognition.onresult = (event) => {
       const text = readTranscript(event);
-      if (text) onResultRef.current(text);
+      if (!text) return;
+      settled = true;
+      onResultRef.current(text);
     };
-    recognition.onerror = (event) => setError(toSpeechInputError(event.error));
+    recognition.onerror = (event) => {
+      settled = true;
+      setError(toSpeechInputError(event.error));
+    };
     recognition.onend = () => {
       recognitionRef.current = null;
       setListening(false);
+      // 들린 말도 오류도 없이 끝난 경우 다시 누르도록 안내, 직접 멈춘 경우는 제외
+      if (!settled && !stoppedRef.current) setError("silent");
     };
 
     recognitionRef.current = recognition;
+    stoppedRef.current = false;
     setError(null);
     setListening(true);
     try {
@@ -106,7 +118,10 @@ export function useSpeechInput(onResult: (text: string) => void) {
     }
   }, []);
 
-  const stop = useCallback(() => recognitionRef.current?.stop(), []);
+  const stop = useCallback(() => {
+    stoppedRef.current = true;
+    recognitionRef.current?.stop();
+  }, []);
 
   return { supported, listening, error, start, stop };
 }
