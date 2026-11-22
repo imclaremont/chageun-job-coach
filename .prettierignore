@@ -1,5 +1,6 @@
 node_modules
 .next
+*.nosync
 out
 build
 coverage
