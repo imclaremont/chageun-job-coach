@@ -25,6 +25,9 @@
 - `develop` → `main`: Squash merge (릴리즈 단위 1커밋)
 - 릴리즈 후 `main`에 `v{major}.{minor}.{patch}` 태그 (배포 버전 식별용)
 - 강제 푸시 금지, 히스토리 수정이 필요하면 사용자 승인 후 `FORCE_PUSH_APPROVED=1` 접두로 실행
+- `main`·`develop`은 GitHub 브랜치 보호 적용 (관리자 포함)
+  - CI 검사 `lint · typecheck · test · build` 통과 뒤 머지 가능
+  - 강제 푸시와 브랜치 삭제 차단
 
 ## 이슈·PR
 

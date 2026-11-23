@@ -37,6 +37,7 @@ gh pr create --base develop --title "[Feat] 제목" --body-file <본문 파일>
 ```
 
 - 본문은 `.github/PULL_REQUEST_TEMPLATE.md` 형식, `Closes #이슈번호` 포함
+- `develop`·`main`으로 가는 PR은 CI 통과 뒤 머지 가능 (브랜치 보호), `gh pr checks <PR번호> --watch`로 대기
 
 ## 4. develop 머지 — Merge commit
 
